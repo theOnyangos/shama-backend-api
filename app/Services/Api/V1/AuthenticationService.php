@@ -13,17 +13,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use PHPUnit\Exception;
 use Spatie\Permission\Models\Role;
 
 class AuthenticationService
 {
-    const STATUS_SUCCESS = 'success';
-    const STATUS_ERROR = 'error';
     const STATUS_CODE_SUCCESS = 200;
     const STATUS_CODE_SUCCESS_CREATE = 201;
     const STATUS_CODE_ERROR = 422;
     const STATUS_CODE_FORBIDDEN = 403;
+    const STATUS_CODE_NOT_FOUND = 404;
     const STATUS_CODE_SERVER = 500;
 
     // ================= LOGIN FUNCTION ==============
@@ -48,13 +46,20 @@ class AuthenticationService
             }
 
             // Get user
-            $user = User::where('email', $request->email)->first();
+            $user = User::with('roles')->where('email', $request->email)->first();
 
             // Check if user is approved
             if ($user->approved === 0) {
                 Auth::logout();
                 $message = 'Your account is not approved yet, contact administrator for approval.';
                 return ApiResource::validationErrorResponse('Forbidden! Account inactive', $message, self::STATUS_CODE_FORBIDDEN);
+            }
+
+            // Check if user deleted their account
+            if ($user->soft_delete === 1) {
+                Auth::logout();
+                $message = 'We couldn\'t find an account associated with the provided credentials. It\'s possible that your account has been deleted. If you wish to use our services again, please create a new account.';
+                return ApiResource::validationErrorResponse('Account Not Found!', $message, self::STATUS_CODE_NOT_FOUND);
             }
 
             // Return success response
@@ -154,7 +159,7 @@ class AuthenticationService
                 $personalDetails->assignRole($teamRole);
             }
 
-            // Return response
+            // Return success response
             $message = 'Registration was successful and is under review, you will be notified upon approval.';
             $token = null;
             return ApiResource::successResponse($personalDetails, $message, $token, self::STATUS_CODE_SUCCESS_CREATE);
@@ -248,12 +253,8 @@ class AuthenticationService
 
         // Return error message if one or more input fields are empty
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'status_code' => 422,
-                'errors' => $validator->errors(),
-                'message' => 'One or more inputs have errors, please check that all required inputs are filled and try again.'
-            ], 422);
+            $message = 'One or more inputs have errors, please check that all required inputs are filled and try again.';
+            return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
         }
 
         // Validation passed, now split the full name into first name and last name
@@ -273,13 +274,15 @@ class AuthenticationService
         $staffData['password'] = Hash::make($request->password);
         $staffData->save();
 
+        $teamRole = Role::where('name', 'coach')->first();
+        if ($teamRole) {
+            $staffData->assignRole($teamRole);
+        }
+
         // Return response
-        return response()->json([
-            'status' => 'success',
-            'status_code' => 201,
-            'data' => $staffData,
-            'message' => 'Congratulations! '.$fullName.', your registration was successful and is under review, you will be notified upon approval.'
-        ], 201);
+        $message = 'Congratulations! '.$fullName.', your registration was successful and is under review, you will be notified upon approval.';
+        $token = $staffData->createToken('api_token')->plainTextToken;
+        return ApiResource::successResponse($staffData, $message, $token, self::STATUS_CODE_SUCCESS_CREATE);
     }
 
     // This function generates new IDs

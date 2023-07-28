@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Access\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,5 +21,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        // Implicitly grant "Super-Admin" role all permission checks using can()
+//        Gate::before(function ($user, $ability) {
+//            if ($user->hasRole('Super-Admin')) {
+//                return true;
+//            }
+//        });
     }
 }

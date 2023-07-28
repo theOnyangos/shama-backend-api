@@ -18,14 +18,14 @@ class ApiResource extends JsonResource
         return parent::toArray($request);
     }
 
-    public static function successResponse($data = null, $message = null, $token = null, $statusCode): JsonResponse
+    public static function successResponse($data = [], $message = null, $token = null, $statusCode): JsonResponse
     {
         return response()->json([
             'status' => 'success',
             'status_code' => $statusCode,
-            'data' => $data,
             'token' => $token,
             'message' => $message,
+            'data' => $data,
         ], $statusCode);
     }
 

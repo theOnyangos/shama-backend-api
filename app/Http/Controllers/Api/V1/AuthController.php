@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ApiResource;
 use App\Services\Api\V1\AuthenticationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    // Status codes
+    const STATUS_CODE_SUCCESS = 204;
+
     // Protected constructor classes
     protected AuthenticationService $authenticationService;
 
@@ -34,5 +39,13 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         return $this->authenticationService->loginUser($request);
+    }
+
+    // This function logs user out of the system
+    public function logout(): JsonResponse
+    {
+        $user = Auth::user();
+        $user->currentAccessToken()->delete();
+        return ApiResource::successResponse([], 'Logout successful', null, self::STATUS_CODE_SUCCESS);
     }
 }

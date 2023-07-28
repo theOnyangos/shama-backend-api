@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // Seed roles
+        Role::create(['name' => 'super-admin', 'guard_name' => 'web']);
         Role::create(['name' => 'admin', 'guard_name' => 'web']);
         Role::create(['name' => 'team', 'guard_name' => 'web']);
         Role::create(['name' => 'coach', 'guard_name' => 'web']);
