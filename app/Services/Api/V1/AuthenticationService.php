@@ -63,7 +63,7 @@ class AuthenticationService
             }
 
             // Return success response
-            $message = 'Registration successful. Welcome back '.$user->first_name.' '.$user->last_name.'!';
+            $message = 'Login successful. Welcome back '.$user->first_name.' '.$user->last_name.'!';
             $token = $user->createToken('api_token')->plainTextToken;
             return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
 
@@ -79,45 +79,10 @@ class AuthenticationService
     {
         try {
             // Run Validation
-            $customMessages = [
-                'required' => 'Please provide the :attribute field to continue.',
-                'email' => 'The :attribute must be a valid email address.',
-                'unique' => 'The :attribute has already been taken.',
-                'min' => 'The :attribute must be at least :min characters.',
-                'string' => 'The :attribute must be a string.',
-                'digits' => 'The :attribute must be exactly :digits digits. Example (07********)',
-                'password.regex' => 'The :attribute must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.',
-            ];
-
-            $validator = Validator::make($request->all(), [
-                'first_name' => 'required|string|max:191',
-                'last_name' => 'required|string',
-                'email' => 'required|email|unique:users,email',
-                'phone' => 'required|nullable|string|digits:10|unique:users,phone',
-                'password' => 'required|string|min:8|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/',
-                'injuries' => 'string|nullable',
-                'allergies' => 'required|string|nullable',
-                'medical_conditions' => 'required|string|nullable',
-                'medications' => 'required|string|nullable',
-                'gender' => 'required|string|nullable',
-                'address' => 'string|nullable',
-                'city' => 'string|nullable',
-                'county' => 'string|nullable',
-                'region' => 'string|nullable',
-                'street' => 'string|nullable',
-                'coach_id' => 'required|string|nullable',
-                'emergency_contact_name' => 'required|string|nullable',
-                'emergency_contact_phone' => 'required|string|nullable|digits:10',
-                'emergency_contact_email' => 'required|string|nullable',
-                'emergency_notes' => 'required|string|nullable',
-                'school_level' => 'string|nullable',
-                'school_address' => 'string|nullable',
-                'school_city' => 'string|nullable',
-                'school_phone' => 'string|nullable|digits:10',
-                'school_email' => 'string|nullable',
-                'school_grade' => 'string|nullable',
-                'school_counselor_name' => 'string|nullable'
-            ], $customMessages);
+            $validator = Validator::make(
+                $request->all(),
+                UserResource::teamValidationFields(),
+                UserResource::customValidationMessages());
 
             // Return error message if one or more input fields are empty
             if ($validator->fails()) {
@@ -232,24 +197,10 @@ class AuthenticationService
     // ========== STAFF REGISTRATION FUNCTION ============
     public static function registerNewStaff($request): JsonResponse
     {
-        // Run Validation
-        $customMessages = [
-            'required' => 'Please provide the :attribute field to continue.',
-            'email' => 'The :attribute must be a valid email address.',
-            'unique' => 'The :attribute has already been taken.',
-            'min' => 'The :attribute must be at least :min characters.',
-            'string' => 'The :attribute must be a string.',
-            'digits' => 'The :attribute must be exactly :digits digits. Example (07********)',
-            'password.regex' => 'The :attribute must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.',
-            'regex' => 'The :attribute format is invalid.',
-        ];
-
-        $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|regex:/^[A-Za-z]+( [A-Za-z]+)+$/',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|nullable|string|digits:10|unique:users,phone',
-            'password' => 'required|string|min:8|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/',
-        ], $customMessages);
+        $validator = Validator::make(
+            $request->all(),
+            UserResource::staffValidationFields(),
+            UserResource::customValidationMessages());
 
         // Return error message if one or more input fields are empty
         if ($validator->fails()) {

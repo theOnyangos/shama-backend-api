@@ -37,14 +37,14 @@ class UsersController extends Controller
         return $this->userService->createNewPermission($request);
     }
 
-    public function approveUser(Request $request, $userId): JsonResponse
+    public function approveUser($userId): JsonResponse
     {
-        return $this->userService->approveUserAccount($request, $userId);
+        return $this->userService->approveUserAccount($userId);
     }
 
-    public function editUserDetails(Request $request, $userId): JsonResponse
+    public function updateUserDetails(Request $request, $userId): JsonResponse
     {
-        return $this->userService->editUserDetails($request, $userId);
+        return $this->userService->updateUser($request, $userId);
     }
 
     public function cancelApproval(Request $request, $userId): JsonResponse
