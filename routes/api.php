@@ -31,17 +31,21 @@ Route::prefix('v1')->group(function () {
             Route::post('/create-permission', [UsersController::class, 'createNewPermission']); // Done!
             Route::get('/users', [UsersController::class, 'getUsers']); // Done!
 
-            Route::post('/create-team', [TeamController::class, 'createNewTeam']);
-            Route::post('/add-team-member', [TeamController::class, 'addNewTeamMember']);
-            Route::post('/update-team-account', [TeamController::class, 'updateTeamAccountDetails']);
-            Route::post('/delete-team-account', [TeamController::class, 'deleteTeamAccountDetails']);
-            Route::get('/get-account-details', [TeamController::class, 'getAccountDetails']);
-            Route::get('/get-team-members', [TeamController::class, 'getTeamMembers']);
-            Route::get('/get-team-weekly-attendance', [TeamController::class, 'getTeamWeeklyAttendance']);
+            Route::post('/create-team/{admin_id}', [TeamController::class, 'createNewTeam']); // Almost Done!
+            Route::put('/add-player-to-team/{admin_id}/{team_id}', [TeamController::class, 'addNewTeamMember']); // Done!
+            Route::put('/add-multiple-team-member/{team_id}', [TeamController::class, 'addMultipleTeamMember']); // Done!
+            Route::post('/update-team-account/{team_id}', [TeamController::class, 'updateTeamAccountDetails']); // Done!
+
+            Route::put('/delete-team-account/{team_id}', [TeamController::class, 'deleteTeamAccountDetails']); // Incomplete
+            Route::delete('/delete-team-account/{team_id}', [TeamController::class, 'permanentDeleteTeamAccountDetails']); // Incomplete
+            Route::get('/get-account-details/{team_id}', [TeamController::class, 'getAccountDetails']); // Incomplete
+            Route::get('/get-team-members/{team_id}', [TeamController::class, 'getTeamPlayers']); // Incomplete
+
             Route::get('/get-unapproved-members', [TeamController::class, 'getUnapprovedMembers']);
             Route::get('/get-coaches', [TeamController::class, 'getAllCoaches']);
+            Route::get('/get-team-weekly-attendance', [TeamController::class, 'getTeamWeeklyAttendance']);
             Route::get('/get-graduated-team', [TeamController::class, 'getGraduatedTeamMembers']);
-            Route::get('/get-graduated-team', [NotificationsController::class, 'getAllNotifications']);
+            Route::get('/get-notifications', [NotificationsController::class, 'getAllNotifications']);
             Route::get('/get-unread-notifications', [NotificationsController::class, 'getUnreadNotifications']);
             Route::delete('/delete-notification', [NotificationsController::class, 'getUnreadNotifications']);
             Route::put('/update-admin-account-details', [UsersController::class, 'updateAdminAccountDetails']);

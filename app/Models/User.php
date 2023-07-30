@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -22,6 +23,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'team_id',
         'first_name',
         'last_name',
         'email',
@@ -71,8 +73,6 @@ class User extends Authenticatable
 
     /**
      * Define a relationship with the "teams" table for users who are coaches.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function coachedTeams(): HasMany
     {
@@ -81,11 +81,9 @@ class User extends Authenticatable
 
     /**
      * Define a relationship with the "teams" table for users who are players.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function teams(): BelongsToMany
+    public function team(): BelongsTo
     {
-        return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id');
+        return $this->belongsTo(Team::class, 'id');
     }
 }

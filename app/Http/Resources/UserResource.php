@@ -36,6 +36,8 @@ class UserResource extends JsonResource
             'digits' => 'The :attribute must be exactly :digits digits. Example (07********)',
             'password.regex' => 'The :attribute must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.',
             'regex' => 'The :attribute format is invalid.',
+            'admin_id.exists' => 'The selected admin is invalid.',
+            'coach_id.exists' => 'The selected coach is invalid.',
         ];
     }
 
@@ -114,6 +116,16 @@ class UserResource extends JsonResource
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|nullable|string|digits:10|unique:users,phone',
             'password' => 'required|string|min:8|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/',
+        ];
+    }
+
+    public static function validateNewTeamFields(): array
+    {
+        return [
+            'team_name' => 'required|string',
+            'team_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'required|string',
+            'coach_id' => 'required|exists:users,id',
         ];
     }
 }
