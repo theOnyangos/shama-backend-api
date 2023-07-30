@@ -47,9 +47,9 @@ class UsersController extends Controller
         return $this->userService->updateUser($request, $userId);
     }
 
-    public function cancelApproval(Request $request, $userId): JsonResponse
+    public function suspendAccount($userId): JsonResponse
     {
-        return $this->userService->cancelApprovalRequest($request, $userId);
+        return $this->userService->suspendUsersAccount($userId);
     }
 
     public function deleteAccount(Request $request, $userId): JsonResponse
@@ -70,5 +70,10 @@ class UsersController extends Controller
     public function getUsersWithDetails(): JsonResponse
     {
         return $this->userService->getAllUsersWithDetails();
+    }
+
+    public function retrieveAccount($userId): JsonResponse
+    {
+        return $this->userService->retrieveUserAccount($userId);
     }
 }

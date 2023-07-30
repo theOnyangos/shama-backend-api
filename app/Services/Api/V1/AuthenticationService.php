@@ -62,6 +62,12 @@ class AuthenticationService
                 return ApiResource::validationErrorResponse('Account Not Found!', $message, self::STATUS_CODE_NOT_FOUND);
             }
 
+            if ($user->is_suspended === 1) {
+                Auth::logout();
+                $message = 'This account is suspended due to violation of terms of service. Please contact support for assistance.';
+                return ApiResource::validationErrorResponse('Account Suspended!', $message, self::STATUS_CODE_NOT_FOUND);
+            }
+
             // Return success response
             $message = 'Login successful. Welcome back '.$user->first_name.' '.$user->last_name.'!';
             $token = $user->createToken('api_token')->plainTextToken;

@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -65,5 +67,25 @@ class User extends Authenticatable
     public function otherDetails(): HasOne
     {
         return $this->hasOne(UserOtherDetail::class);
+    }
+
+    /**
+     * Define a relationship with the "teams" table for users who are coaches.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function coachedTeams(): HasMany
+    {
+        return $this->hasMany(Team::class, 'coach_id');
+    }
+
+    /**
+     * Define a relationship with the "teams" table for users who are players.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id');
     }
 }

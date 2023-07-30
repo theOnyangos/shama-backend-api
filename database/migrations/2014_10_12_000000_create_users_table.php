@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->integer('approved')->default(0);
+            $table->integer('is_suspended')->default(0);
             $table->string('email')->unique();
             $table->integer('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();

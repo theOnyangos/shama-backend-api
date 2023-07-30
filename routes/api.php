@@ -47,6 +47,7 @@ Route::prefix('v1')->group(function () {
             Route::put('/update-admin-account-details', [UsersController::class, 'updateAdminAccountDetails']);
             Route::put('/update-account-password', [UsersController::class, 'updateAccountPassword']);
             Route::put('/update-profile-image', [UsersController::class, 'updateProfileImage']);
+            Route::put('/retrieve-account/{user_id}', [UsersController::class, 'retrieveAccount']); // Done!
         });
 
         Route::middleware('role:coach')->group(function () {
@@ -54,8 +55,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/approve-user/{user_id}', [UsersController::class, 'approveUser']); // Done!
             Route::get('/get-single-user-details/{user_id}', [UsersController::class, 'getSingleUserDetails']); // Done!
             Route::put('/update-user-details/{user_id}', [UsersController::class, 'updateUserDetails']); // Done!
-            Route::post('/cancel-approval/{user_id}', [UsersController::class, 'cancelApproval']);
-            Route::post('/delete-account/{user_id}', [UsersController::class, 'deleteAccount']);
+            Route::put('/suspend-account/{user_id}', [UsersController::class, 'suspendAccount']); // Done!
+            Route::put('/delete-account/{user_id}', [UsersController::class, 'deleteAccount']);
         });
 
         Route::middleware('role:team')->group(function () {

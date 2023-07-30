@@ -20,6 +20,7 @@ class UserService
     const STATUS_CODE_SUCCESS = 200;
     const STATUS_CODE_SUCCESS_CREATE = 201;
     const STATUS_CODE_ERROR = 422;
+    const STATUS_CODE_NOT_FOUND = 404;
     const STATUS_CODE_FORBIDDEN = 403;
     const STATUS_CODE_SERVER = 500;
 
@@ -122,6 +123,7 @@ class UserService
         return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);
     }
 
+    // This function approves the users account
     public static function approveUserAccount($userId): JsonResponse
     {
         try {
@@ -134,11 +136,11 @@ class UserService
 
             // Approve user account
             $approveData = ['approved' => 1];
-            $user = User::where('id', $userId)->update($approveData);
+            User::where('id', $userId)->update($approveData);
 
             $message = 'User account approved successfully';
             $token = null;
-            return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
+            return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
@@ -208,20 +210,57 @@ class UserService
         }
     }
 
-    public static function cancelApprovalRequest($request, $userId): JsonResponse
+    // This function cancels user approval
+    public static function suspendUsersAccount($userId): JsonResponse
     {
-        $message = 'Account suspended successfully';
-        $token = null;
-        return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);
+        try {
+            // Check if user is already approved
+            $user = User::where('id', $userId)->first();
+            if (!$user) return ApiResource::validationErrorResponse('Not Found!', 'User dose not exist in the system.', self::STATUS_CODE_NOT_FOUND);
+
+            if ($user->is_suspended === 1) {
+                $message = 'This account is already suspended.';
+                return ApiResource::validationErrorResponse('Forbidden!', $message, self::STATUS_CODE_FORBIDDEN);
+            }
+
+            // Approve user account
+            $suspendData = ['is_suspended' => 1];
+            User::where('id', $userId)->update($suspendData);
+
+            $message = 'Account suspended successfully. Users of the account will not be able to sign in until the account is restored.';
+            $token = null;
+            return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
     }
 
+    // This function soft delete the users account
     public static function deleteAccountRequest($request, $userId): JsonResponse
     {
-        $message = 'Account deleted successfully';
-        $token = null;
-        return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);
+        try {
+            $user = User::where('id', $userId)->first();
+
+            if ($user && $user->soft_delete === 1) {
+                $message = 'This account is already deleted.';
+                return ApiResource::validationErrorResponse('Validation error!!', $message, self::STATUS_CODE_FORBIDDEN);
+            }
+
+            // Delete user account
+            $deleteData = ['soft_delete' => 1];
+            User::where('id', $userId)->update($deleteData);
+
+            $message = 'Account deleted successfully';
+            $token = null;
+            return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
     }
 
+    // Gets a single user full data
     public static function getSingleUserData($userId): JsonResponse
     {
         try {
@@ -236,10 +275,11 @@ class UserService
         }
     }
 
+    // Gets all users with their details in descending order
     public static function getAllUsersWithDetails(): JsonResponse
     {
         try {
-            $users = User::with('addressDetails', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')->get();
+            $users = User::with('addressDetails', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')->orderBy('id', 'DESC')->get();
 
             $message = 'All users with details retried successfully';
             $token = null;
@@ -304,4 +344,33 @@ class UserService
         ]);
     }
 
+    // Retrieve users account
+    public static function retrieveUserAccount($userId): JsonResponse
+    {
+        try {
+            // Check if user is already approved
+            $user = User::where('id', $userId)->first();
+            if (!$user) return ApiResource::validationErrorResponse('Not Found!', 'User dose not exist in the system.', self::STATUS_CODE_NOT_FOUND);
+
+            // Check if the account exists.
+            if ($user->is_suspended === 0 && $user->soft_delete === 0 && $user->approved === 1) {
+                $message = 'Account is active.';
+                $token = null;
+                return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
+            }
+
+            // Retrieve user account
+            $retrieveData = ['is_suspended' => 0, 'soft_delete' => 0, 'approved' => 1];
+            User::where('id', $userId)->update($retrieveData);
+
+            $message = 'Account for user '.$user->first_name.' '.$user->last_name.' has been restored successfully. They can now login.';
+            $token = null;
+            return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
+
+            // Trow system error messages
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
 }
