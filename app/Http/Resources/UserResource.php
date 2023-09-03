@@ -115,6 +115,7 @@ class UserResource extends JsonResource
             'full_name' => 'required|string|regex:/^[A-Za-z]+( [A-Za-z]+)+$/',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|nullable|string|digits:10|unique:users,phone',
+            'user_type' => 'required',
             'password' => 'required|string|min:8|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/',
         ];
     }

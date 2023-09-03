@@ -6,28 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserAddress extends Model
+class Street extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        "address",
-        "city",
-        "county_id",
-        "region_id",
-        "street_id",
-        "coach_id",
-    ];
+    protected $table = 'shama_streets';
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
+    protected $fillable = [
+        'county_id',
+        'region_id',
+        'street_name',
+        'amount',
+    ];
 
     public function county(): BelongsTo
     {
@@ -39,8 +29,8 @@ class UserAddress extends Model
         return $this->belongsTo(Region::class, 'region_id');
     }
 
-    public function street(): BelongsTo
+    public function userAddress(): BelongsTo
     {
-        return $this->belongsTo(Street::class, 'street_id');
+        return $this->belongsTo(UserAddress::class, 'street_id');
     }
 }

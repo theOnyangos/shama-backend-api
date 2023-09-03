@@ -4,6 +4,23 @@ namespace App\Services\Api\V1;
 
 use App\Http\Resources\ApiResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+
+const counties_table = "shama_counties";
+const regions_table = "shama_regions";
+const streets_table = "shama_streets";
+
+// This function gets a single county name from the database
+function getCountyName($countyId)
+{
+    return DB::table(counties_table)->where('county_code', $countyId)->first()->county_name;
+}
+
+// This method gets the region name
+function getRegionName($regionId)
+{
+    return DB::table(regions_table)->where('id', $regionId)->first()->region_name;
+}
 
 class AddressService
 {
@@ -16,22 +33,46 @@ class AddressService
 
     public static function getKenyanCounties(): JsonResponse
     {
-        $message = 'All counties fetched successfully';
-        $token = null;
-        return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);
+        try {
+            $counties = DB::table('shama_counties')->get();
+            $message = 'All counties fetched successfully';
+            $token = null;
+            return ApiResource::successResponse($counties, $message, $token, self::STATUS_CODE_SUCCESS);
+
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
     }
 
-    public static function getRegionsInCounties(): JsonResponse
+    public static function getRegionsInCounties($request, $countyId): JsonResponse
     {
-        $message = 'County regions fetched successfully';
-        $token = null;
-        return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);
+        try {
+            // Get all regions in the db where the county code is same as the one passed
+            $regions = DB::table(regions_table)->where('county_code', $countyId)->get();
+            // Send back a success message upon successful data fetch.
+            $message = "Regions for ". getCountyName($countyId)." fetched successfully";
+            $token = null;
+            return ApiResource::successResponse($regions, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
     }
 
-    public static function getStreetsInRegion(): JsonResponse
+    public function getStreetsInRegion($request, $regionId): JsonResponse
     {
-        $message = 'Region streets fetched successfully';
-        $token = null;
-        return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);
+        try {
+            // Get all streets for respective region from the database
+            $streets = DB::table(streets_table)->where('region_id', $regionId)->get();
+            // Send back success message
+            $message = 'Streets for '.getRegionName($regionId).' region fetched successfully';
+            $token = null;
+            return ApiResource::successResponse($streets, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
     }
+
 }

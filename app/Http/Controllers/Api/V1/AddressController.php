@@ -24,14 +24,14 @@ class AddressController extends Controller
     }
 
     // This method gets all regions in counties (KE)
-    public function getAllRegionsInCounties(Request $request): JsonResponse
+    public function getAllRegionsInCounties(Request $request, $countyId): JsonResponse
     {
-        return $this->addressService->getRegionsInCounties();
+        return $this->addressService->getRegionsInCounties($request, $countyId);
     }
 
     // This method gets all region streets in kenya
-    public function getAllStreetsInRegion(Request $request): JsonResponse
+    public function getAllStreetsInRegion(Request $request, $regionId): JsonResponse
     {
-        return $this->addressService->getStreetsInRegion();
+        return $this->addressService->getStreetsInRegion($request, $regionId);
     }
 }

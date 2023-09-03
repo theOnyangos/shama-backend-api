@@ -26,6 +26,7 @@ class User extends Authenticatable
         'team_id',
         'first_name',
         'last_name',
+        'user_type',
         'email',
         'phone',
         'password',
@@ -85,5 +86,22 @@ class User extends Authenticatable
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'id');
+    }
+
+    /**
+     * Define a many-to-many relationship with the "team_locations" table for coaches.
+     */
+    public function coachedTeamLocations(): BelongsToMany
+    {
+        return $this->belongsToMany(TeamLocation::class, 'team_location_user', 'member_id', 'team_location_id')
+            ->where('role', 'coach');
+    }
+
+    /**
+     * Define a many-to-many relationship with the "team_locations" table for players.
+     */
+    public function teamLocations(): BelongsToMany
+    {
+        return $this->belongsToMany(TeamLocation::class, 'player_team_location', 'member_id', 'team_location_id');
     }
 }

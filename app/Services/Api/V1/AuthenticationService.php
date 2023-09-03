@@ -110,6 +110,7 @@ class AuthenticationService
             $personalDetails['last_name'] = $request->last_name;
             $personalDetails['email'] = $request->email;
             $personalDetails['phone'] = $request->phone;
+            $personalDetails['user_type'] = "player";
             $personalDetails['password'] = Hash::make($request->password);
             $personalDetails->save();
 
@@ -228,10 +229,15 @@ class AuthenticationService
         $staffData['last_name'] = $lastName;
         $staffData['email'] = $request->email;
         $staffData['phone'] = $request->phone;
+        $staffData['user_type'] = $request->user_type;
         $staffData['password'] = Hash::make($request->password);
         $staffData->save();
 
-        $teamRole = Role::where('name', 'coach')->first();
+        $teamRole = "";
+        if ($request->user_type === 'coach' || $request->user_type === 'user') {
+            $teamRole = Role::where('name', 'coach')->first();
+        }
+
         if ($teamRole) {
             $staffData->assignRole($teamRole);
         }
@@ -258,3 +264,5 @@ class AuthenticationService
         return str_pad($nextId, 6, '0', STR_PAD_LEFT);
     }
 }
+
+

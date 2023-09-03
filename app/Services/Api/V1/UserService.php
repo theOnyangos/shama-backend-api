@@ -279,7 +279,7 @@ class UserService
     public static function getAllUsersWithDetails(): JsonResponse
     {
         try {
-            $users = User::with('addressDetails', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')->orderBy('id', 'DESC')->get();
+            $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')->orderBy('id', 'DESC')->get();
 
             $message = 'All users with details retried successfully';
             $token = null;

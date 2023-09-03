@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\NotificationsController;
+use App\Http\Controllers\Api\V1\StatisticalDataController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -14,8 +15,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth-staff-registration', [AuthController::class, 'createNewStaffRegistration']); // Done!
     Route::post('/auth-login', [AuthController::class, 'login']); // Done!
     Route::get('/counties', [AddressController::class, 'getAllCounties']);
-    Route::get('/regions', [AddressController::class, 'getAllRegionsInCounties']);
-    Route::get('/streets', [AddressController::class, 'getAllStreetsInRegion']);
+    Route::get('/regions/{county_id}', [AddressController::class, 'getAllRegionsInCounties']);
+    Route::get('/streets/{region_id}', [AddressController::class, 'getAllStreetsInRegion']);
 
     Route::middleware('auth:sanctum')->group(function () {
         // General routes
@@ -30,6 +31,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/remove-user-permission/{user_id}/{role_id}', [UsersController::class, 'removeUserPermission']); // Done!
             Route::post('/create-permission', [UsersController::class, 'createNewPermission']); // Done!
             Route::get('/users', [UsersController::class, 'getUsers']); // Done!
+            Route::get('/statistical-data', [StatisticalDataController::class, 'getStatisticalData']); // Done!
 
             Route::post('/create-team/{admin_id}', [TeamController::class, 'createNewTeam']); // Almost Done!
             Route::put('/add-player-to-team/{admin_id}/{team_id}', [TeamController::class, 'addNewTeamMember']); // Done!
