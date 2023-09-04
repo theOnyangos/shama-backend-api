@@ -67,9 +67,9 @@ class UsersController extends Controller
         return $this->userService->getSingleUserData($userId);
     }
 
-    public function getUsersWithDetails(): JsonResponse
+    public function getUsersWithDetails(Request $request): JsonResponse
     {
-        return $this->userService->getAllUsersWithDetails();
+        return $this->userService->getAllUsersWithDetails($request);
     }
 
     public function retrieveAccount($userId): JsonResponse

@@ -276,12 +276,19 @@ class UserService
     }
 
     // Gets all users with their details in descending order
-    public static function getAllUsersWithDetails(): JsonResponse
+    public static function getAllUsersWithDetails($request): JsonResponse
     {
         try {
-            $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')->orderBy('id', 'DESC')->get();
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 10; // Number of items per page
 
-            $message = 'All users with details retried successfully';
+            // Fetch paginated data
+            $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
+                ->orderBy('id', 'DESC')
+                ->paginate($perPage, ['*'], 'page', $page);
+
+            $message = 'All users with details retrieved successfully';
             $token = null;
             return ApiResource::successResponse($users, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
