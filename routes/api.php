@@ -32,6 +32,9 @@ Route::prefix('v1')->group(function () {
             Route::post('/create-permission', [UsersController::class, 'createNewPermission']); // Done!
             Route::get('/users', [UsersController::class, 'getUsers']); // Done!
             Route::get('/statistical-data', [StatisticalDataController::class, 'getStatisticalData']); // Done!
+            Route::get('/unverified-users-data', [UsersController::class, 'getUnverifiedUsersWithDetails']); // Done!
+            Route::get('/get-players-data', [UsersController::class, 'getPlayersData']); // Done!
+            Route::get('/get-male-female-count', [UsersController::class, 'getMaleAndFemaleCount']); // Done!
 
             Route::post('/create-team/{admin_id}', [TeamController::class, 'createNewTeam']); // Almost Done!
             Route::put('/add-player-to-team/{admin_id}/{team_id}', [TeamController::class, 'addNewTeamMember']); // Done!

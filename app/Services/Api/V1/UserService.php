@@ -148,6 +148,45 @@ class UserService
     }
 
     // This function update the team's user details.
+
+    /**
+     * @param $request
+     * @return JsonResponse
+     */
+    public static function extracted($request, $isApproved=null, $isPlayer=null): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 10; // Number of items per page
+
+            if ($isApproved !== null) {
+                // Fetch paginated data
+                $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
+                    ->orderBy('id', 'DESC')
+                    ->where('approved', $isApproved)
+                    ->paginate($perPage, ['*'], 'page', $page);
+            } elseif ($isPlayer !== null) {
+                $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
+                    ->orderBy('id', 'DESC')
+                    ->where('user_type', $isPlayer)
+                    ->paginate($perPage, ['*'], 'page', $page);
+            } else {
+                $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
+                    ->orderBy('id', 'DESC')
+                    ->paginate($perPage, ['*'], 'page', $page);
+            }
+
+
+            $message = 'All users with details retrieved successfully';
+            $token = null;
+            return ApiResource::successResponse($users, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
     public function updateUser($request, $userId): JsonResponse
     {
         try {
@@ -278,17 +317,29 @@ class UserService
     // Gets all users with their details in descending order
     public static function getAllUsersWithDetails($request): JsonResponse
     {
+        return self::extracted($request);
+    }
+
+    // This method gets unverified users with their details
+    public static function getUnverifiedUsers($request, $isApproved): JsonResponse
+    {
+        return self::extracted($request, $isApproved);
+    }
+
+    // This method gets only players from the database
+    public static function getPlayersOnly($request, $isPlayer): JsonResponse
+    {
         try {
             // Get the "page" query string parameter or default to page 1
             $page = $request->query('page', 1);
             $perPage = 10; // Number of items per page
 
-            // Fetch paginated data
             $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
                 ->orderBy('id', 'DESC')
+                ->where('user_type', $isPlayer)
                 ->paginate($perPage, ['*'], 'page', $page);
 
-            $message = 'All users with details retrieved successfully';
+            $message = 'All players with details retrieved successfully';
             $token = null;
             return ApiResource::successResponse($users, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
@@ -375,6 +426,74 @@ class UserService
             return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
 
             // Trow system error messages
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This method gets gender count for different users in the system.
+    public static function getMaleFemaleCount($request): JsonResponse
+    {
+        try {
+            // Count the number of male users
+            $maleUsersCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Male');
+            })->count();
+
+            // Count the number of female users
+            $femaleUsersCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Female');
+            })->count();
+
+            // Count the number of male players
+            $malePlayerCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Male');
+            })->where('user_type', 'player')->count();
+
+            // Count the number of female players
+            $femalePlayerCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Female');
+            })->where('user_type', 'player')->count();
+
+            // Count the number of female coaches
+            $femaleCoachCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Female');
+            })->where('user_type', 'coach')->count();
+
+            // Count the number of male coaches
+            $maleCoachCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Male');
+            })->where('user_type', 'coach')->count();
+
+            // Count the number of male social-workers
+            $maleSocialWorkerCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Male');
+            })->where('user_type', 'social_worker')->count();
+
+            // Count the number of female social-workers
+            $femaleSocialWorkerCount = User::whereHas('medicalDetails', function ($query) {
+                $query->where('gender', 'Female');
+            })->where('user_type', 'social_worker')->count();
+
+            // Other users count
+            $others = User::where('user_type', 'User')->count();
+
+            $genderCountArray = [
+                'male_users' => $maleUsersCount,
+                'female_users' => $femaleUsersCount,
+                'male_players' => $malePlayerCount,
+                'female_players' => $femalePlayerCount,
+                'male_coach' => $maleCoachCount,
+                'female_coach' => $femaleCoachCount,
+                'male_social_worker' => $maleSocialWorkerCount,
+                'female_social_worker' => $femaleSocialWorkerCount,
+                'other_users_count' => $others,
+            ];
+
+            $message = 'Gender count fetched successfully';
+            $token = null;
+            return ApiResource::successResponse($genderCountArray, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);

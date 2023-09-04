@@ -76,4 +76,23 @@ class UsersController extends Controller
     {
         return $this->userService->retrieveUserAccount($userId);
     }
+
+    // This function gets unverified users with their data
+    public function getUnverifiedUsersWithDetails(Request $request): JsonResponse
+    {
+        $isApproved = 0;
+        return $this->userService->getUnverifiedUsers($request, $isApproved);
+    }
+
+    // This method gets only players data
+    public function getPlayersData(Request $request): JsonResponse
+    {
+        $isPlayer = 'player';
+        return $this->userService->getPlayersOnly($request, $isPlayer);
+    }
+
+    public function getMaleAndFemaleCount(Request $request): JsonResponse
+    {
+        return $this->userService->getMaleFemaleCount($request);
+    }
 }
