@@ -476,6 +476,9 @@ class UserService
                 $query->where('gender', 'Female');
             })->where('user_type', 'social_worker')->count();
 
+            // Get graduated users
+            $graduatedPlayers = User::where('is_graduated', 1)->count();
+
             // Other users count
             $others = User::where('user_type', 'User')->count();
 
@@ -488,6 +491,7 @@ class UserService
                 'female_coach' => $femaleCoachCount,
                 'male_social_worker' => $maleSocialWorkerCount,
                 'female_social_worker' => $femaleSocialWorkerCount,
+                'graduated_players' => $graduatedPlayers,
                 'other_users_count' => $others,
             ];
 
