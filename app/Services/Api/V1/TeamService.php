@@ -2,12 +2,17 @@
 
 namespace App\Services\Api\V1;
 
+use App\Http\Requests\CreateTeamRequest;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\UserResource;
 use App\Models\Team;
+use App\Models\TeamLocation;
+use App\Models\TeamLocationUser;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class TeamService
@@ -21,6 +26,8 @@ class TeamService
 
     public function createTeam($request, $adminId): JsonResponse
     {
+        $message = "";
+        $token = null;
         try {
             $validator = Validator::make(
                 $request->all(),
@@ -34,31 +41,68 @@ class TeamService
             }
 
             // Handle image upload and store the file
+            $fullPath = "";
             if ($request->hasFile('team_image')) {
-                $filename = time() . '.' . $request->team_image->extension();
-                $request->team_image->move(public_path('assets/team_images'), $filename);
-                $apartmentImage = asset('team_images/' . $filename);
-                $newTeamData['team_image'] = $apartmentImage;
+                $uploadedFile = $request->file('team_image');
+                $filename = "shama_". time() . '.' . $uploadedFile->getClientOriginalExtension();
+                $filePath = 'assets/team_images/' . $filename; // Relative path within the public folder
+                $fullPath = url($filePath); // Full path including the 'public' folder
+
+                // Move and store the uploaded file
+                $uploadedFile->move(public_path('assets/team_images'), $filename);
+
+                // You can save the $filePath in your database or return it in the response
+                $message = 'File uploaded successfully to: ' . $fullPath;
+            } else {
+                $message = 'No file was uploaded.';
             }
 
             // Store data in the database.
             $newTeamData = new Team();
             $newTeamData['team_name'] = $request->team_name;
-            $newTeamData['team_image'] = $request->team_image;
+            $newTeamData['team_image'] = $fullPath;
+            $newTeamData['team_location'] = $request->team_location;
             $newTeamData['description'] = $request->description;
             $newTeamData['admin_id'] = $adminId;
-            $newTeamData['coach_id'] = $request->coach_id;
-            $newTeamData->save();
+            $newTeamData['coach_id'] = $adminId;
 
-            // Return response
-            $message = 'Congratulations! ' . $request->team_name . ', created successfully.';
-            $token = null;
+            if ($newTeamData->save()) {
+                // Saved team ID
+                $teamId = $newTeamData->id;
+                // Save players and coaches.
+                static::saveTeamPlayersAndCoaches($request, $teamId);
+                // Return success message.
+                $message = 'Congratulations! ' . $request->team_name . ', created successfully.';
+            }
+
             return ApiResource::successResponse($newTeamData, $message, $token, self::STATUS_CODE_SUCCESS_CREATE);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
         }
     }
+
+    private static function saveTeamPlayersAndCoaches($request, $teamId): void
+    {
+        // Check if 'coaches' and 'players' data exists in the request and can be decoded.
+        if ($request->has('coaches') && $request->has('players')) {
+            $arrayCoachesData = json_decode($request->input('coaches'), true);
+            $arrayPlayersData = json_decode($request->input('players'), true);
+
+            if (is_array($arrayCoachesData)) {
+                foreach ($arrayCoachesData as $coach) {
+                    TeamLocationUser::create(['team_id' => $teamId, 'user_id' => $coach, 'role' => 'coach']);
+                }
+            }
+
+            if (is_array($arrayPlayersData)) {
+                foreach ($arrayPlayersData as $player) {
+                    TeamLocationUser::create(['team_id' => $teamId, 'user_id' => $player, 'role' => 'player']);
+                }
+            }
+        }
+    }
+
 
     // This method add player to team
     public static function addPlayerToTeam($adminId, $teamId): JsonResponse
@@ -239,4 +283,30 @@ class TeamService
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
         }
     }
+
+    // This method gets all team locations with data.
+    public static function getAllTeamLocations($request): JsonResponse
+    {
+        try {
+            // Retrieve all teams with their coaches, players, and player count
+            $teams = Team::with(['members.user' => function ($query) {
+                $query->where('user_type', 'coach');
+            }, 'members.user' => function ($query) {
+                $query->where('user_type', 'player');
+            }])
+                ->withCount(['members as player_count' => function ($query) {
+                    $query->where('role', 'player');
+                }])
+                ->get();
+
+            // Return response
+            $message = 'All team data Fetched successfully.';
+            $token = null;
+            return ApiResource::successResponse($teams, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
 }

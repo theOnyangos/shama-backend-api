@@ -35,6 +35,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/unverified-users-data', [UsersController::class, 'getUnverifiedUsersWithDetails']); // Done!
             Route::get('/get-players-data', [UsersController::class, 'getPlayersData']); // Done!
             Route::get('/get-male-female-count', [UsersController::class, 'getMaleAndFemaleCount']); // Done!
+            Route::get('/get-coaches-data', [UsersController::class, 'getCoachesData']); // Done!
+            Route::get('/get-coaches-and-players', [UsersController::class, 'getCoachesAndPlayersData']); // Done!
 
             Route::post('/create-team/{admin_id}', [TeamController::class, 'createNewTeam']); // Almost Done!
             Route::put('/add-player-to-team/{admin_id}/{team_id}', [TeamController::class, 'addNewTeamMember']); // Done!
@@ -45,6 +47,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('/delete-team-account/{team_id}', [TeamController::class, 'permanentDeleteTeamAccountDetails']); // Incomplete
             Route::get('/get-account-details/{team_id}', [TeamController::class, 'getAccountDetails']); // Incomplete
             Route::get('/get-team-members/{team_id}', [TeamController::class, 'getTeamPlayers']); // Incomplete
+            Route::get('/get-all-team-locations-data', [TeamController::class, 'getAllTeamLocationData']); // Incomplete
 
             Route::get('/get-unapproved-members', [TeamController::class, 'getUnapprovedMembers']);
             Route::get('/get-coaches', [TeamController::class, 'getAllCoaches']);

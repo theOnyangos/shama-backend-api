@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateTeamRequest;
 use App\Http\Resources\ApiResource;
 use App\Services\Api\V1\TeamService;
 use Illuminate\Http\JsonResponse;
@@ -64,5 +65,11 @@ class TeamController extends Controller
     public function getTeamPlayers($teamId): JsonResponse
     {
         return $this->teamService->getTeamPlayersWithDetails($teamId);
+    }
+
+    // This method gets all team location Data
+    public function getAllTeamLocationData(Request $request): JsonResponse
+    {
+        return $this->teamService->getAllTeamLocations($request);
     }
 }

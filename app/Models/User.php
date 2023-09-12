@@ -104,4 +104,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(TeamLocation::class, 'player_team_location', 'member_id', 'team_location_id');
     }
+
+    // Define a relationship with TeamLocationUser
+    public function teamLocationUsers(): HasMany
+    {
+        return $this->hasMany(TeamLocationUser::class, 'user_id');
+    }
 }

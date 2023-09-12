@@ -3,6 +3,7 @@
 namespace App\Services\Api\V1;
 
 use App\Http\Resources\ApiResource;
+use App\Http\Resources\CoachesPlayersResource;
 use App\Http\Resources\UserResource;
 use App\Models\EducationDetail;
 use App\Models\MedicalDetail;
@@ -11,6 +12,7 @@ use App\Models\UserAddress;
 use App\Models\UserOtherDetail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Js;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -166,19 +168,24 @@ class UserService
                     ->orderBy('id', 'DESC')
                     ->where('approved', $isApproved)
                     ->paginate($perPage, ['*'], 'page', $page);
+
+                $message = 'All approved users with details retrieved successfully';
             } elseif ($isPlayer !== null) {
                 $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
                     ->orderBy('id', 'DESC')
                     ->where('user_type', $isPlayer)
                     ->paginate($perPage, ['*'], 'page', $page);
+
+                $message = 'All players retrieved successfully';
             } else {
                 $users = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
                     ->orderBy('id', 'DESC')
                     ->paginate($perPage, ['*'], 'page', $page);
+
+                $message = 'All users with details retrieved successfully';
             }
 
 
-            $message = 'All users with details retrieved successfully';
             $token = null;
             return ApiResource::successResponse($users, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
@@ -498,6 +505,53 @@ class UserService
             $message = 'Gender count fetched successfully';
             $token = null;
             return ApiResource::successResponse($genderCountArray, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This method gets coaches data
+    public static function getCoachData($request, $isCoach): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 10; // Number of items per page
+
+            if ($isCoach !== null) {
+                $users = User::where('user_type', $isCoach)
+                    ->orderBy('id', 'DESC')
+                    ->paginate($perPage, ['*'], 'page', $page);
+
+            }
+
+            $message = 'All coaches retrieved successfully';
+            $token = null;
+            return ApiResource::successResponse($users, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This method gets players and coaches names and ids
+    public static function getPlayersAndCoaches($request): JsonResponse
+    {
+        try {
+            // Get players and coaches from the User model
+            $players = User::where('user_type', 'player')->select('id', 'first_name', 'last_name')->get();
+            $coaches = User::where('user_type', 'coach')->select('id', 'first_name', 'last_name')->get();
+
+            // You can create arrays with names and IDs here if needed
+            $playersArray = CoachesPlayersResource::collection($players);
+            $coachesArray = CoachesPlayersResource::collection($coaches);
+
+            $message = 'Coaches and players fetched successfully';
+            $token = null;
+            $users = ['players' => $playersArray, 'coaches' => $coachesArray];
+
+            return ApiResource::successResponse($users, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);

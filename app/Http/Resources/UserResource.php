@@ -124,9 +124,11 @@ class UserResource extends JsonResource
     {
         return [
             'team_name' => 'required|string',
+            'team_location' => 'required',
             'team_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'required|string',
-            'coach_id' => 'required|exists:users,id',
+            'coaches' => 'required',
+            'players' => 'required',
         ];
     }
 }

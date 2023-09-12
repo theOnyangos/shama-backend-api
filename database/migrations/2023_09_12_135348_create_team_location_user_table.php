@@ -13,13 +13,10 @@ return new class extends Migration
     {
         Schema::create('team_location_user', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('team_location_id');
+            $table->unsignedBigInteger('team_id');
             $table->unsignedBigInteger('user_id');
             $table->enum('role', ['coach'])->default('coach');
             $table->timestamps();
-
-            $table->foreign('team_location_id')->references('id')->on('team_locations')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

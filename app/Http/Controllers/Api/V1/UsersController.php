@@ -95,4 +95,16 @@ class UsersController extends Controller
     {
         return $this->userService->getMaleFemaleCount($request);
     }
+
+    // This function gets coaches only with their data
+    public function getCoachesData(Request $request): JsonResponse
+    {
+        $isCoach = 'coach';
+        return $this->userService->getCoachData($request, $isCoach);
+    }
+
+    public function getCoachesAndPlayersData(Request $request): JsonResponse
+    {
+        return $this->userService->getPlayersAndCoaches($request);
+    }
 }
