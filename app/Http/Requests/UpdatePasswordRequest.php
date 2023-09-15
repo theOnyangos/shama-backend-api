@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateTeamRequest extends FormRequest
+class UpdatePasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,9 @@ class CreateTeamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'team_name' => 'required|string|max:255',
-            'description' => 'required|string|max:1000',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Adjust validation rules as needed
+            'old_password' => 'required|string',
+            'new_password' => 'required|string|min:8|max:255|confirmed',
+            'confirm_password' => 'required|string',
         ];
     }
 }

@@ -22,6 +22,8 @@ Route::prefix('v1')->group(function () {
         // General routes
         Route::post('/logout', [AuthController::class, 'logout']); // Done!
         Route::get('/get-users-with-details', [UsersController::class, 'getUsersWithDetails']); // Done!
+        Route::post('/update-user-account/{user_id}', [UsersController::class, 'updateUserAccount']);
+        Route::post('/update-account-password/{user_id}', [UsersController::class, 'updateAccountPassword']);
 
         // Admin routes
         Route::middleware('role:admin')->group(function () {
@@ -37,6 +39,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-male-female-count', [UsersController::class, 'getMaleAndFemaleCount']); // Done!
             Route::get('/get-coaches-data', [UsersController::class, 'getCoachesData']); // Done!
             Route::get('/get-coaches-and-players', [UsersController::class, 'getCoachesAndPlayersData']); // Done!
+            Route::post('/delete-account/{user_id}', [UsersController::class, 'deleteAccount']);
 
             Route::post('/create-team/{admin_id}', [TeamController::class, 'createNewTeam']); // Almost Done!
             Route::put('/add-player-to-team/{admin_id}/{team_id}', [TeamController::class, 'addNewTeamMember']); // Done!
@@ -57,7 +60,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-unread-notifications', [NotificationsController::class, 'getUnreadNotifications']);
             Route::delete('/delete-notification', [NotificationsController::class, 'getUnreadNotifications']);
             Route::put('/update-admin-account-details', [UsersController::class, 'updateAdminAccountDetails']);
-            Route::put('/update-account-password', [UsersController::class, 'updateAccountPassword']);
             Route::put('/update-profile-image', [UsersController::class, 'updateProfileImage']);
             Route::put('/retrieve-account/{user_id}', [UsersController::class, 'retrieveAccount']); // Done!
         });
@@ -68,7 +70,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-single-user-details/{user_id}', [UsersController::class, 'getSingleUserDetails']); // Done!
             Route::put('/update-user-details/{user_id}', [UsersController::class, 'updateUserDetails']); // Done!
             Route::put('/suspend-account/{user_id}', [UsersController::class, 'suspendAccount']); // Done!
-            Route::put('/delete-account/{user_id}', [UsersController::class, 'deleteAccount']);
         });
 
         Route::middleware('role:team')->group(function () {

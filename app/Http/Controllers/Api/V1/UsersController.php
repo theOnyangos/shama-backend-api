@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdatePasswordRequest;
 use App\Services\Api\V1\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Psy\Util\Json;
 
 class UsersController extends Controller
 {
@@ -106,5 +108,17 @@ class UsersController extends Controller
     public function getCoachesAndPlayersData(Request $request): JsonResponse
     {
         return $this->userService->getPlayersAndCoaches($request);
+    }
+
+    // This method updates the users account details
+    public function updateUserAccount(Request $request, $userId): JsonResponse
+    {
+        return $this->userService->updateUserAccountDetails($request, $userId);
+    }
+
+    // This method updates the user password
+    public function updateAccountPassword(Request $request, $userId): JsonResponse
+    {
+        return $this->userService->updateAccountPassword($request, $userId);
     }
 }

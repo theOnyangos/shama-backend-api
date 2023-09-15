@@ -7,10 +7,12 @@ use App\Http\Resources\CoachesPlayersResource;
 use App\Http\Resources\UserResource;
 use App\Models\EducationDetail;
 use App\Models\MedicalDetail;
+use App\Models\Team;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserOtherDetail;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Js;
 use Spatie\Permission\Models\Permission;
@@ -557,4 +559,115 @@ class UserService
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
         }
     }
+
+    // This function updates the user account details
+    public function updateUserAccountDetails($request, $userId): JsonResponse
+    {
+        $userData = [];
+        $message = "";
+        $fullPath = "";
+
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                UserResource::validateAccountFields()
+            );
+
+            // Return error message if one or more input fields are empty
+            if ($validator->fails()) {
+                $message = 'One or more inputs have errors, please check that all required inputs are filled and try again.';
+                return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
+            }
+
+            // Find the user
+            $user = User::find($userId);
+
+            if (!$user) {
+                return ApiResource::errorResponse('User not found', self::STATUS_CODE_NOT_FOUND);
+            }
+
+            // Check if there's an existing image
+            if ($user->image) {
+                // Delete the existing image
+                $existingImagePath = public_path('assets/profile_account_images/') . basename($user->image);
+                if (file_exists($existingImagePath)) {
+                    unlink($existingImagePath);
+                }
+            }
+
+            // Handle image upload and store the file
+            if ($request->hasFile('image')) {
+                $uploadedFile = $request->file('image');
+                $filename = "shama_Profile_".$request->first_name."_". time() . '.' . $uploadedFile->getClientOriginalExtension();
+                $filePath = 'assets/profile_account_images/' . $filename; // Relative path within the public folder
+                $fullPath = url($filePath); // Full path including the 'public' folder
+
+                // Move and store the uploaded file
+                $uploadedFile->move(public_path('assets/profile_account_images'), $filename);
+
+                // You can save the $filePath in your database or return it in the response
+                $message = 'File uploaded successfully to: ' . $fullPath;
+            } else {
+                $message = 'No file was uploaded.';
+            }
+
+            // Update user details in the database.
+            $user->first_name = $request->first_name;
+            $user->last_name = $request->last_name;
+            $user->email = $request->email;
+            $user->phone = $request->phone;
+            $user->image = $fullPath;
+
+            if ($user->save()) {
+                $userData = $user;
+                $message = 'Account details updated successfully.';
+            }
+
+            $token = null;
+            return ApiResource::successResponse($userData, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This function updates the users account password
+    public function updateAccountPassword($request, $userId): JsonResponse
+    {
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                UserResource::validatePasswordFields());
+
+            // Return error message if one or more input fields are empty
+            if ($validator->fails()) {
+                $message = 'One or more inputs have errors, please check that all required inputs are filled and try again.';
+                return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
+            }
+
+            // Find the user by ID
+            $user = User::find($userId);
+
+            if (!$user) {
+                return ApiResource::errorResponse('User not found', self::STATUS_CODE_NOT_FOUND);
+            }
+
+            // Check if the current password matches
+            if (!Hash::check($request->input('old_password'), $user->password)) {
+                return ApiResource::errorResponse('Current password is incorrect', self::STATUS_CODE_ERROR);
+            }
+
+            // Update the password
+            $user->password = Hash::make($request->input('new_password'));
+            $user->save();
+
+            // Return a success response
+            $message = 'Password updated successfully.';
+            return ApiResource::successResponse([], $message, null, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
 }

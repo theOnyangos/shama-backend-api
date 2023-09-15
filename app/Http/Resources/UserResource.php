@@ -13,7 +13,7 @@ class UserResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray($request): array|\JsonSerializable|\Illuminate\Contracts\Support\Arrayable
+    public function toArray($request): array
     {
         return [
             'id' => $this->id,
@@ -129,6 +129,26 @@ class UserResource extends JsonResource
             'description' => 'required|string',
             'coaches' => 'required',
             'players' => 'required',
+        ];
+    }
+
+    public static function validatePasswordFields(): array
+    {
+        return [
+            'old_password' => 'required|string',
+            'new_password' => 'required|string|min:8|max:255',
+            'confirm_password' => 'required|string',
+        ];
+    }
+
+    public static function validateAccountFields(): array
+    {
+        return [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'phone' => 'required|string|max:13', // Adjust the max length as needed
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate as an image (optional)
         ];
     }
 }

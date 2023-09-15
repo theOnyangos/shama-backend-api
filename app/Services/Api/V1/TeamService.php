@@ -44,7 +44,7 @@ class TeamService
             $fullPath = "";
             if ($request->hasFile('team_image')) {
                 $uploadedFile = $request->file('team_image');
-                $filename = "shama_". time() . '.' . $uploadedFile->getClientOriginalExtension();
+                $filename = "shama_".$request->team_name."_team_profile_". time() . '.' . $uploadedFile->getClientOriginalExtension();
                 $filePath = 'assets/team_images/' . $filename; // Relative path within the public folder
                 $fullPath = url($filePath); // Full path including the 'public' folder
 
@@ -228,6 +228,16 @@ class TeamService
     public static function softDeleteTeamAccount($teamId): JsonResponse
     {
         try {
+            $user = User::where('id', $teamId)->first();
+
+            if ($user && $user->soft_delete === 1) {
+                $message = 'This account is already deleted.';
+                return ApiResource::validationErrorResponse('Validation error!!', $message, self::STATUS_CODE_FORBIDDEN);
+            }
+
+            // Delete user account
+            $deleteData = ['soft_delete' => 1];
+            User::where('id', $teamId)->update($deleteData);
 
             // Return response
             $message = 'Account Deleted successfully.';
