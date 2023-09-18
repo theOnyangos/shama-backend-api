@@ -122,6 +122,18 @@ class UserService
 
     public static function createNewPermission($request): JsonResponse
     {
+        $validator = Validator::make(
+            $request->all(),
+            UserResource::validateRoleFields());
+
+        // Return error message if one or more input fields are empty
+        if ($validator->fails()) {
+            $message = 'One or more inputs have errors, please check that all required inputs are filled and try again.';
+            return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
+        }
+
+        Role::create(['name' => $request->role_name, 'guard_name' => 'web']);
+
         $message = 'Permission created successfully';
         $token = null;
         return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);

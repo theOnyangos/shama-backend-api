@@ -151,4 +151,19 @@ class UserResource extends JsonResource
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate as an image (optional)
         ];
     }
+
+    public static function validateRoleFields(): array
+    {
+        return [
+            'role_name' => 'required|string|max:255',
+        ];
+    }
+
+    public static function validateRolePermission(): array
+    {
+        return [
+            'role_name' => 'required|string|max:255',
+            'permission_name' => 'required|string|max:255',
+        ];
+    }
 }

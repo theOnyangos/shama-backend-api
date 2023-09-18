@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\NotificationsController;
+use App\Http\Controllers\Api\V1\PermissionsController;
+use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\StatisticalDataController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\UsersController;
@@ -51,6 +53,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-account-details/{team_id}', [TeamController::class, 'getAccountDetails']); // Incomplete
             Route::get('/get-team-members/{team_id}', [TeamController::class, 'getTeamPlayers']); // Incomplete
             Route::get('/get-all-team-locations-data', [TeamController::class, 'getAllTeamLocationData']); // Incomplete
+            Route::post('/create-role-permission', [PermissionsController::class, 'createNewRolePermission']); // Done
+            Route::get('/get-roles-permissions', [PermissionsController::class, 'getRolesWithPermission']); // Done
+            Route::get('/search-users', [SearchController::class, 'getUserSearchData']); // Done
 
             Route::get('/get-unapproved-members', [TeamController::class, 'getUnapprovedMembers']);
             Route::get('/get-coaches', [TeamController::class, 'getAllCoaches']);

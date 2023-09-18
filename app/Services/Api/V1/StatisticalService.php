@@ -3,6 +3,7 @@
 namespace App\Services\Api\V1;
 
 use App\Http\Resources\ApiResource;
+use App\Models\Team;
 use App\Models\TeamLocation;
 use App\Models\Training;
 use App\Models\User;
@@ -79,7 +80,7 @@ class StatisticalService
     private static function countLocations()
     {
         // Assuming you have a "locations" table
-        return TeamLocation::count();
+        return Team::count();
     }
 
     private static function countSocialWorkers()
