@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CoachesController;
 use App\Http\Controllers\Api\V1\NotificationsController;
 use App\Http\Controllers\Api\V1\PermissionsController;
+use App\Http\Controllers\Api\V1\PlayersController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\StatisticalDataController;
 use App\Http\Controllers\Api\V1\TeamController;
@@ -42,6 +44,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-coaches-data', [UsersController::class, 'getCoachesData']); // Done!
             Route::get('/get-coaches-and-players', [UsersController::class, 'getCoachesAndPlayersData']); // Done!
             Route::post('/delete-account/{user_id}', [UsersController::class, 'deleteAccount']);
+            Route::get('/get-new-players', [PlayersController::class, 'getAllNewPlayers']); // Done
+            Route::get('/get-players', [PlayersController::class, 'getAllPlayers']); // Done
+            Route::get('/get-graduated-players', [PlayersController::class, 'getAllGraduatedPlayers']); // Done
 
             Route::post('/create-team/{admin_id}', [TeamController::class, 'createNewTeam']); // Almost Done!
             Route::put('/add-player-to-team/{admin_id}/{team_id}', [TeamController::class, 'addNewTeamMember']); // Done!
