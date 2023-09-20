@@ -39,9 +39,9 @@ class UsersController extends Controller
         return $this->userService->createNewPermission($request);
     }
 
-    public function approveUser($userId): JsonResponse
+    public function approveUser(Request $request, $userId): JsonResponse
     {
-        return $this->userService->approveUserAccount($userId);
+        return $this->userService->approveUserAccount($request, $userId);
     }
 
     public function updateUserDetails(Request $request, $userId): JsonResponse
@@ -49,9 +49,9 @@ class UsersController extends Controller
         return $this->userService->updateUser($request, $userId);
     }
 
-    public function suspendAccount($userId): JsonResponse
+    public function suspendAccount(Request $request, $userId): JsonResponse
     {
-        return $this->userService->suspendUsersAccount($userId);
+        return $this->userService->suspendUsersAccount($request, $userId);
     }
 
     public function deleteAccount(Request $request, $userId): JsonResponse
@@ -120,5 +120,11 @@ class UsersController extends Controller
     public function updateAccountPassword(Request $request, $userId): JsonResponse
     {
         return $this->userService->updateAccountPassword($request, $userId);
+    }
+
+    // This method uploads users profile image
+    public function uploadUserProfileImage(Request $request, $userId): JsonResponse
+    {
+        return $this->userService->uploadUserImage($request, $userId);
     }
 }

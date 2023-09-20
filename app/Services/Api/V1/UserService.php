@@ -140,7 +140,7 @@ class UserService
     }
 
     // This function approves the users account
-    public static function approveUserAccount($userId): JsonResponse
+    public static function approveUserAccount($request, $userId): JsonResponse
     {
         try {
             // Check if user is already approved
@@ -153,10 +153,14 @@ class UserService
             // Approve user account
             $approveData = ['approved' => 1];
             User::where('id', $userId)->update($approveData);
+            $user = User::where('id', $userId)->first();
 
-            $message = 'User account approved successfully';
+            // Send sms to user that their account has been approved
+            // Create Notification
+
+            $message = 'User account for '.$user->first_name.' '.$user->last_name.' has been approved successfully';
             $token = null;
-            return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
+            return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
@@ -271,7 +275,7 @@ class UserService
     }
 
     // This function cancels user approval
-    public static function suspendUsersAccount($userId): JsonResponse
+    public static function suspendUsersAccount($request, $userId): JsonResponse
     {
         try {
             // Check if user is already approved
@@ -682,4 +686,59 @@ class UserService
         }
     }
 
+    // This method uploads user image
+    public static function uploadUserImage($request, $userId): JsonResponse
+    {
+        try {
+            $message = "";
+            $fullPath = "";
+            // Validate incoming image
+            $validator = Validator::make(
+                $request->all(),
+                UserResource::validateUserProfileImage()
+            );
+            // Return error message if one or more input fields are empty
+            if ($validator->fails()) {
+                $message = 'An image is required but was not provided';
+                return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
+            }
+            // Find the user with ID
+            $user = User::find($userId);
+            // Check if user with ID provided exists
+            if (!$user) {
+                return ApiResource::errorResponse('User not found', self::STATUS_CODE_NOT_FOUND);
+            }
+            // Check if there's an existing image
+            if ($user->image) {
+                // Delete the existing image
+                $existingImagePath = public_path('assets/profile_account_images/') . basename($user->image);
+                if (file_exists($existingImagePath)) {
+                    unlink($existingImagePath);
+                }
+            }
+            // Check if request has file the upload
+            if ($request->hasFile('user_image')) {
+                $uploadedFile = $request->file('user_image');
+                $filename = "shama_Profile_".$user->first_name."_". time() . '.' . $uploadedFile->getClientOriginalExtension();
+                $filePath = 'assets/profile_account_images/' . $filename; // Relative path within the public folder
+                $fullPath = url($filePath); // Full path including the 'public' folder
+
+                // Move and store the uploaded file
+                $uploadedFile->move(public_path('assets/profile_account_images'), $filename);
+
+                // You can save the $filePath in your database or return it in the response
+                $message = 'File uploaded successfully to: ' . $fullPath;
+            } else {
+                $message = 'No file was uploaded.';
+            }
+            // Update image in the database
+            $user->image = $fullPath;
+            $user->save();
+
+            return ApiResource::successResponse($user, $message, null, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
 }

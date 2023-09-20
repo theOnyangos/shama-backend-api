@@ -72,4 +72,16 @@ class TeamController extends Controller
     {
         return $this->teamService->getAllTeamLocations($request);
     }
+
+    // This method gets all team-players
+    public function getAllTeamPlayers(Request $request, $teamId): JsonResponse
+    {
+        return $this->teamService->getAllTeamPlayers($request, $teamId);
+    }
+
+    // This method gets all team coaches for a team-group
+    public function getAllTeamCoaches(Request $request, $teamId): JsonResponse
+    {
+        return $this->teamService->getTeamCoaches($request, $teamId);
+    }
 }

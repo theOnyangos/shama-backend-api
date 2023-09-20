@@ -21,6 +21,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/counties', [AddressController::class, 'getAllCounties']);
     Route::get('/regions/{county_id}', [AddressController::class, 'getAllRegionsInCounties']);
     Route::get('/streets/{region_id}', [AddressController::class, 'getAllStreetsInRegion']);
+    Route::post('/suspend-user-account/{user_id}', [UsersController::class, 'suspendAccount']); // Done!
+    Route::post('/approve-user-account/{user_id}', [UsersController::class, 'approveUser']); // Done!
+    Route::post('/retrieve-account/{user_id}', [UsersController::class, 'retrieveAccount']); // Done!
 
     Route::middleware('auth:sanctum')->group(function () {
         // General routes
@@ -47,6 +50,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-new-players', [PlayersController::class, 'getAllNewPlayers']); // Done
             Route::get('/get-players', [PlayersController::class, 'getAllPlayers']); // Done
             Route::get('/get-graduated-players', [PlayersController::class, 'getAllGraduatedPlayers']); // Done
+            Route::post('/upload-user-image/{user_id}', [UsersController::class, 'uploadUserProfileImage']); // Done
+            Route::get('/get-team-players/{team_id}', [TeamController::class, 'getAllTeamPlayers']); // Done
+            Route::get('/get-team-coaches/{team_id}', [TeamController::class, 'getAllTeamCoaches']); // Done
 
             Route::post('/create-team/{admin_id}', [TeamController::class, 'createNewTeam']); // Almost Done!
             Route::put('/add-player-to-team/{admin_id}/{team_id}', [TeamController::class, 'addNewTeamMember']); // Done!
@@ -71,15 +77,14 @@ Route::prefix('v1')->group(function () {
             Route::delete('/delete-notification', [NotificationsController::class, 'getUnreadNotifications']);
             Route::put('/update-admin-account-details', [UsersController::class, 'updateAdminAccountDetails']);
             Route::put('/update-profile-image', [UsersController::class, 'updateProfileImage']);
-            Route::put('/retrieve-account/{user_id}', [UsersController::class, 'retrieveAccount']); // Done!
         });
 
         Route::middleware('role:coach')->group(function () {
             // Endpoints for coach role
-            Route::post('/approve-user/{user_id}', [UsersController::class, 'approveUser']); // Done!
+//            Route::post('/approve-user/{user_id}', [UsersController::class, 'approveUser']); // Done!
             Route::get('/get-single-user-details/{user_id}', [UsersController::class, 'getSingleUserDetails']); // Done!
             Route::put('/update-user-details/{user_id}', [UsersController::class, 'updateUserDetails']); // Done!
-            Route::put('/suspend-account/{user_id}', [UsersController::class, 'suspendAccount']); // Done!
+//            Route::put('/suspend-account/{user_id}', [UsersController::class, 'suspendAccount']); // Done!
         });
 
         Route::middleware('role:team')->group(function () {

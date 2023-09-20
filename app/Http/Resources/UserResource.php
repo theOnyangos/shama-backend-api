@@ -166,4 +166,11 @@ class UserResource extends JsonResource
             'permission_name' => 'required|string|max:255',
         ];
     }
+
+    public static function validateUserProfileImage(): array
+    {
+        return [
+            'user_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ];
+    }
 }

@@ -319,4 +319,66 @@ class TeamService
         }
     }
 
+    // This method gets all players for a specific team
+    public static function getAllTeamPlayers($request, $teamId): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 10; // Number of items per page
+
+            if ($teamId !== null) {
+                $players = User::with('teamLocationUsers')
+                    ->where('user_type', 'player') // Use the actual column name for user_type
+                    ->whereHas('teamLocationUsers', function ($query) use ($teamId) {
+                        $query->where('team_id', $teamId);
+                    })
+                    ->orderBy('id', 'DESC')
+                    ->paginate($perPage, ['*'], 'page', $page);
+            }
+
+            // Return response
+            $message = 'All players for team '. (new TeamService)->getTeamName($teamId).' fetched successfully.';
+            $token = null;
+            return ApiResource::successResponse($players, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This method gets all team coaches
+    public static function getTeamCoaches($request, $teamId): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 10; // Number of items per page
+
+            if ($teamId !== null) {
+                $coaches = User::with('teamLocationUsers')
+                    ->where('user_type', 'coach')
+                    ->whereHas('teamLocationUsers', function ($query) use ($teamId) {
+                        $query->where('team_id', $teamId);
+                    })
+                    ->orderBy('id', 'DESC')
+                    ->paginate($perPage, ['*'], 'page', $page);
+
+                // Return response
+                $message = 'All players for team '. (new TeamService)->getTeamName($teamId).' fetched successfully.';
+                $token = null;
+                return ApiResource::successResponse($coaches, $message, $token, self::STATUS_CODE_SUCCESS);
+            }
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    private function getTeamName($teamId): string
+    {
+        $team = Team::where("id", $teamId)->first();
+        return $team->team_name;
+    }
+
 }
