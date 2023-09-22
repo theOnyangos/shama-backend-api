@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Models\EducationDetail;
 use App\Models\MedicalDetail;
 use App\Models\Team;
+use App\Models\TeamLocationUser;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserOtherDetail;
@@ -739,6 +740,88 @@ class UserService
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    public static function getNewUserInformation($request, $userId): JsonResponse
+    {
+        try {
+            $user = User::find($userId);
+            // Check if user with ID provided exists
+            if (!$user) {
+                return ApiResource::errorResponse('User not found', self::STATUS_CODE_NOT_FOUND);
+            }
+
+            // Get team name
+            $teamName = static::getTeamNameByUserId($user->id);
+            $user->team_name = $teamName;
+
+            $message = 'Updated information for '.$user->first_name.' '.$user->last_name.'! pulled successfully';
+            $token = $user->createToken('api_token')->plainTextToken;
+            return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This function gets users count for logged-in user
+    public static function getLoggedInUsersCount($request, $teamId): JsonResponse
+    {
+        try {
+            $uniqueUserIDs = TeamLocationUser::where('team_id', $teamId)
+                ->distinct()
+                ->pluck('user_id');
+
+            $graduated = User::whereIn('id', $uniqueUserIDs)
+                ->where('is_graduated', 1)
+                ->count();
+
+            $suspended = User::whereIn('id', $uniqueUserIDs)
+                ->where('is_suspended', 1)
+                ->count();
+
+            $dataCount = [
+                'total_players' => count($uniqueUserIDs),
+                'total_graduated' => $graduated,
+                'total_suspended' => $suspended,
+            ];
+
+            $message = 'User information count fetched';
+            $token = null;
+            return ApiResource::successResponse($dataCount, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    public static function getTeamNameByUserId($userId): string
+    {
+        // Find the user by user ID
+        $user = User::find($userId);
+
+        if ($user) {
+            // Assuming the user has a relationship with teamLocationUsers
+            $teamLocationUsers = $user->teamLocationUsers;
+
+            if ($teamLocationUsers->isNotEmpty()) {
+                // You can loop through the teamLocationUsers if there are multiple
+                // or simply get the first one if that's what you need
+                $firstTeamLocationUser = $teamLocationUsers->first();
+
+                // Assuming the teamLocationUser has a 'team_id' field
+                $teamId = $firstTeamLocationUser->team_id;
+
+                // Find the team by team ID
+                $team = Team::find($teamId);
+
+                return $team->team_name;
+            } else {
+                return "User is not associated with any team in the teamLocationUser table.";
+            }
+        } else {
+            return "User not found.";
         }
     }
 }

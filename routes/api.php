@@ -24,6 +24,11 @@ Route::prefix('v1')->group(function () {
     Route::post('/suspend-user-account/{user_id}', [UsersController::class, 'suspendAccount']); // Done!
     Route::post('/approve-user-account/{user_id}', [UsersController::class, 'approveUser']); // Done!
     Route::post('/retrieve-account/{user_id}', [UsersController::class, 'retrieveAccount']); // Done!
+    Route::post('/delete-account/{user_id}', [UsersController::class, 'deleteAccount']);
+    Route::get('/get-team-name/{user_id}', [AuthController::class, 'getTeamName']);
+    Route::post('/send-verification-code/{user_email}', [NotificationsController::class, 'sendPasswordVerificationCode']); // Done
+    Route::get('/check-verification-code/{user_email}', [NotificationsController::class, 'checkVerificationCode']); // Done
+    Route::post('/update-user-password/{user_email}', [NotificationsController::class, 'updateUserPassword']); // Done
 
     Route::middleware('auth:sanctum')->group(function () {
         // General routes
@@ -31,6 +36,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/get-users-with-details', [UsersController::class, 'getUsersWithDetails']); // Done!
         Route::post('/update-user-account/{user_id}', [UsersController::class, 'updateUserAccount']);
         Route::post('/update-account-password/{user_id}', [UsersController::class, 'updateAccountPassword']);
+        Route::post('/upload-user-image/{user_id}', [UsersController::class, 'uploadUserProfileImage']); // Done
+        Route::get('/get-updated-user-information/{user_id}', [UsersController::class, 'getUpdatedUserInformation']); // Done
+        Route::get('/get-user-count/{team_id}', [UsersController::class, 'getLoggedInUsersCount']); // Done
 
         // Admin routes
         Route::middleware('role:admin')->group(function () {
@@ -46,11 +54,11 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-male-female-count', [UsersController::class, 'getMaleAndFemaleCount']); // Done!
             Route::get('/get-coaches-data', [UsersController::class, 'getCoachesData']); // Done!
             Route::get('/get-coaches-and-players', [UsersController::class, 'getCoachesAndPlayersData']); // Done!
-            Route::post('/delete-account/{user_id}', [UsersController::class, 'deleteAccount']);
+
             Route::get('/get-new-players', [PlayersController::class, 'getAllNewPlayers']); // Done
             Route::get('/get-players', [PlayersController::class, 'getAllPlayers']); // Done
             Route::get('/get-graduated-players', [PlayersController::class, 'getAllGraduatedPlayers']); // Done
-            Route::post('/upload-user-image/{user_id}', [UsersController::class, 'uploadUserProfileImage']); // Done
+//            Route::post('/upload-user-image/{user_id}', [UsersController::class, 'uploadUserProfileImage']); // Done
             Route::get('/get-team-players/{team_id}', [TeamController::class, 'getAllTeamPlayers']); // Done
             Route::get('/get-team-coaches/{team_id}', [TeamController::class, 'getAllTeamCoaches']); // Done
 

@@ -127,4 +127,16 @@ class UsersController extends Controller
     {
         return $this->userService->uploadUserImage($request, $userId);
     }
+
+    // This method gets updated user information
+    public function getUpdatedUserInformation(Request $request, $userId): JsonResponse
+    {
+        return $this->userService->getNewUserInformation($request, $userId);
+    }
+
+    // Get loggedIn user count details
+    public function getLoggedInUsersCount(Request $request, $teamId): JsonResponse
+    {
+        return $this->userService->getLoggedInUsersCount($request, $teamId);
+    }
 }

@@ -48,4 +48,10 @@ class AuthController extends Controller
         $user->currentAccessToken()->delete();
         return ApiResource::successResponse([], 'Logout successful', null, self::STATUS_CODE_SUCCESS);
     }
+
+    // This function gets the team name
+    public function getTeamName($userId): string
+    {
+        return $this->authenticationService->getTeamNameByUserId($userId);
+    }
 }

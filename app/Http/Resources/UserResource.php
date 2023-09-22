@@ -173,4 +173,12 @@ class UserResource extends JsonResource
             'user_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
+
+    public static function validateClientUpdatePassword(): array
+    {
+        return [
+            'new_password' => 'required|string|min:8|max:255',
+            'confirm_password' => 'required|string',
+        ];
+    }
 }

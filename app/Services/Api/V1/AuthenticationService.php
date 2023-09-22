@@ -4,6 +4,8 @@ namespace App\Services\Api\V1;
 
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\UserResource;
+use App\Models\Team;
+use App\Models\TeamLocationUser;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\EducationDetail;
@@ -67,6 +69,11 @@ class AuthenticationService
                 $message = 'This account is suspended due to violation of terms of service. Please contact support for assistance.';
                 return ApiResource::validationErrorResponse('Account Suspended!', $message, self::STATUS_CODE_NOT_FOUND);
             }
+
+            // Get team name
+            $teamName = static::getTeamNameByUserId($user->id);
+            $user->team_name = $teamName['team_name'] ?? "No Team!";
+            $user->team_id = $teamName['team_id'] ?? null;
 
             // Return success response
             $message = 'Login successful. Welcome back '.$user->first_name.' '.$user->last_name.'!';
@@ -262,6 +269,35 @@ class AuthenticationService
 
         // Return the next ID as a string with leading zeros
         return str_pad($nextId, 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function getTeamNameByUserId($userId): string|array
+    {
+        // Find the user by user ID
+        $user = User::find($userId);
+
+        if ($user) {
+            // Assuming the user has a relationship with teamLocationUsers
+            $teamLocationUsers = $user->teamLocationUsers;
+
+            if ($teamLocationUsers->isNotEmpty()) {
+                // You can loop through the teamLocationUsers if there are multiple
+                // or simply get the first one if that's what you need
+                $firstTeamLocationUser = $teamLocationUsers->first();
+
+                // Assuming the teamLocationUser has a 'team_id' field
+                $teamId = $firstTeamLocationUser->team_id;
+
+                // Find the team by team ID
+                $team = Team::find($teamId);
+
+                return ['team_name' => $team->team_name, 'team_id' => $team->id];
+            } else {
+                return "No Team";
+            }
+        } else {
+            return "Not found.";
+        }
     }
 }
 
