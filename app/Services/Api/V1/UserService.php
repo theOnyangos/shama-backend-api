@@ -5,6 +5,7 @@ namespace App\Services\Api\V1;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\CoachesPlayersResource;
 use App\Http\Resources\UserResource;
+use App\Models\CloseAccountMessage;
 use App\Models\EducationDetail;
 use App\Models\MedicalDetail;
 use App\Models\Team;
@@ -12,7 +13,11 @@ use App\Models\TeamLocationUser;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserOtherDetail;
+use App\Notifications\AccountApproved;
+use App\Notifications\AccountDeleted;
+use App\Notifications\AccountSuspended;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Js;
@@ -156,7 +161,8 @@ class UserService
             User::where('id', $userId)->update($approveData);
             $user = User::where('id', $userId)->first();
 
-            // Send sms to user that their account has been approved
+            // Send email to user that their account has been approved
+            $user->notify(new AccountApproved($user->first_name.' '.$user->last_name));
             // Create Notification
 
             $message = 'User account for '.$user->first_name.' '.$user->last_name.' has been approved successfully';
@@ -292,6 +298,9 @@ class UserService
             $suspendData = ['is_suspended' => 1];
             User::where('id', $userId)->update($suspendData);
 
+            // Send notification to email
+            $user->notify(new AccountSuspended($user->first_name." ".$user->lasr_name));
+
             $message = 'Account suspended successfully. Users of the account will not be able to sign in until the account is restored.';
             $token = null;
             return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
@@ -316,9 +325,15 @@ class UserService
             $deleteData = ['soft_delete' => 1];
             User::where('id', $userId)->update($deleteData);
 
-            $message = 'Account deleted successfully';
+            // Save close reason request
+            CloseAccountMessage::create(['user_id' => $userId, 'close_reason' => $request->closure_reason, 'farewell_message' => $request->farewell_message]);
+
+            // send notification to email confining account has been deleted
+            $user->notify(new AccountDeleted($user->first_name." ".$user->last_name, $user->member_id));
+
+            $message = 'Thank you for your feedback and for being part of the team.';
             $token = null;
-            return ApiResource::successResponse(User::where('id', $userId)->first(), $message, $token, self::STATUS_CODE_SUCCESS);
+            return ApiResource::successResponse([], $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);

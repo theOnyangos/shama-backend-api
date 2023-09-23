@@ -33,4 +33,10 @@ class NotificationsController extends Controller
     {
         return $this->notificationService->updateNewUserPassword($request, $userEmail);
     }
+
+    // This function send a-delete account confirmation message to email
+    public function sendDeleteAccountConfirmation($userId): JsonResponse
+    {
+        return $this->notificationService->sendConfirmationMessage($userId);
+    }
 }

@@ -5,9 +5,11 @@ namespace App\Services\Api\V1;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Notifications\AccountDeletionConfirmation;
 use App\Notifications\PasswordVerification;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -130,6 +132,27 @@ class NotificationService
 
             // Return response
             $message = 'Password updates successfully you may proceed to login.';
+            return ApiResource::successResponse($user, $message, null, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    public static function sendConfirmationMessage($userId): JsonResponse
+    {
+        try {
+            // Get user by id
+            $user = User::find($userId);
+            // Check if user with ID provided exists
+            if (!$user) {
+                return ApiResource::errorResponse('User not found', self::STATUS_CODE_NOT_FOUND);
+            }
+
+            $user->notify(new AccountDeletionConfirmation($user->last_name, Crypt::encryptString($user->id)));
+
+            // Return response
+            $message = 'Check your email to confirm account deletion. After this, your account will be deleted permanently';
             return ApiResource::successResponse($user, $message, null, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();

@@ -11,6 +11,7 @@ use App\Models\UserAddress;
 use App\Models\EducationDetail;
 use App\Models\MedicalDetail;
 use App\Models\UserOtherDetail;
+use App\Notifications\AccountCreated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -137,6 +138,9 @@ class AuthenticationService
             if ($teamRole) {
                 $personalDetails->assignRole($teamRole);
             }
+
+            // Send notification to users email
+            $personalDetails->notify(new AccountCreated($request->first_name." ".$request->last_name));
 
             // Return success response
             $message = 'Registration was successful and is under review, you will be notified upon approval.';

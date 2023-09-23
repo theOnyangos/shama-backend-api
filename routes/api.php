@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\StatisticalDataController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\UsersController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 // Prefix all routes with '/api'
@@ -29,6 +30,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/send-verification-code/{user_email}', [NotificationsController::class, 'sendPasswordVerificationCode']); // Done
     Route::get('/check-verification-code/{user_email}', [NotificationsController::class, 'checkVerificationCode']); // Done
     Route::post('/update-user-password/{user_email}', [NotificationsController::class, 'updateUserPassword']); // Done
+    Route::post('/send-delete-account-confirmation/{user_email}', [NotificationsController::class, 'sendDeleteAccountConfirmation']); // Done
+    Route::get('/save-closure-reason/{user_id}', [HomeController::class, 'openCloseAccountPage']);
 
     Route::middleware('auth:sanctum')->group(function () {
         // General routes

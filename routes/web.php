@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/close-account', function () {
+    return view('delete');
+});
+
+Route::get('/save-closure-reason/{user_id}', [HomeController::class, 'openCloseAccountPage']);
