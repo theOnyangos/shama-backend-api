@@ -42,7 +42,8 @@ class AccountCreated extends Notification
             ->subject('Account Creation')
             ->greeting("{$salute}, {$this->userName}")
             ->line('Welcome to Shama Rugby!')
-            ->line('Your account has been successfully created.')
+            ->line('Your account has been successfully created. You will be notified once your account is approved, this might take up to 24hours.')
+            ->line('If you have any queries feel free to contact us at support@srf.co.ke.')
             ->line('Thank you for joining our community.');
     }
 

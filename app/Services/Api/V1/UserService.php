@@ -16,6 +16,7 @@ use App\Models\UserOtherDetail;
 use App\Notifications\AccountApproved;
 use App\Notifications\AccountDeleted;
 use App\Notifications\AccountSuspended;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
@@ -62,9 +63,12 @@ class UserService
         }
     }
 
-    public static function addPermissionToUser($userId, $permissionId): JsonResponse
+    public static function addPermissionToUser($request): JsonResponse
     {
         try {
+            $userId = $request->user_id;
+            $permissionId = $request->role;
+
             // Get user
             $user = User::where('id', $userId)->with('roles')->first();
 
@@ -91,9 +95,12 @@ class UserService
         }
     }
 
-    public static function removePermissionFromUser($userId, $permissionId): JsonResponse
+    public static function removePermissionFromUser($request): JsonResponse
     {
         try {
+            $userId = $request->user_id;
+            $permissionId = $request->role;
+
             // Get user
             $user = User::where('id', $userId)->with('roles')->first();
 
@@ -115,6 +122,9 @@ class UserService
             $teamRole = Role::where('name', $permissionId)->first();
             if ($teamRole) {
                 $user->removeRole($teamRole);
+            } else {
+                $message = 'Role not found';
+                return ApiResource::validationErrorResponse('Validation error!', $message, self::STATUS_CODE_ERROR);
             }
 
             $message = 'Permission removed successfully';
@@ -162,7 +172,7 @@ class UserService
             $user = User::where('id', $userId)->first();
 
             // Send email to user that their account has been approved
-            $user->notify(new AccountApproved($user->first_name.' '.$user->last_name));
+            $user->notify(new AccountApproved($user->first_name.' '.$user->last_name, $user->member_id));
             // Create Notification
 
             $message = 'User account for '.$user->first_name.' '.$user->last_name.' has been approved successfully';
@@ -555,6 +565,7 @@ class UserService
 
             if ($isCoach !== null) {
                 $users = User::where('user_type', $isCoach)
+                    ->with('roles')
                     ->orderBy('id', 'DESC')
                     ->paginate($perPage, ['*'], 'page', $page);
 
@@ -837,6 +848,67 @@ class UserService
             }
         } else {
             return "User not found.";
+        }
+    }
+
+    // This function updates the clients account details validateClientDetailsUpdate
+    public static function updateClientUserAccountDetails($request, $userId): JsonResponse
+    {
+        try {
+            // Validate incoming user request
+            $validator = Validator::make(
+                $request->all(),
+                UserResource::validateClientDetailsUpdate()
+            );
+            // Return error message if one or more input fields are empty
+            if ($validator->fails()) {
+                $message = 'Some fields are missing for client account update';
+                return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
+            }
+
+            // Find the user with ID
+            $user = User::find($userId);
+            // Check if user with ID provided exists
+            if (!$user) {
+                $message = "No user found for the provided ID";
+                return ApiResource::errorResponse($message, self::STATUS_CODE_NOT_FOUND);
+            }
+
+            // Update user data request
+            $user->first_name = $request->first_name;
+            $user->last_name = $request->last_name;
+            $user->email = $request->email;
+            $user->phone = $request->phone;
+            $user->age = $request->age;
+            $user->facebook_link = $request->facebook_link;
+            $user->twitter_link = $request->twitter_link;
+            $user->instagram_link = $request->instagram_link;
+            $user->updated_at = Carbon::now();
+            $user->save();
+
+            $message = 'Account details for '.$request->first_name." ".$request->last_name.' were updated successfully. You may need to logout for this changes to take effect.';
+            $token = null;
+            return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This method gets a single player with details
+    public static function getSinglePlayerWithDetails($request, $userId): JsonResponse
+    {
+        try {
+            $user = User::with('addressDetails.county:id,county_name', 'addressDetails.region:id,region_name', 'addressDetails.street:id,street_name', 'medicalDetails', 'educationDetails', 'otherDetails', 'roles')
+                ->where('id', $userId)
+                ->first();
+
+            $message = 'All details for '.$user->first_name." ".$user->last_name.' retrieved successfully';
+            $token = null;
+            return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
         }
     }
 }

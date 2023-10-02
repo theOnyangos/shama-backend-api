@@ -181,4 +181,60 @@ class UserResource extends JsonResource
             'confirm_password' => 'required|string',
         ];
     }
+
+    public static function validateAttendanceCreation(): array
+    {
+        return [
+            'attendance_type' => 'required|string',
+            'players' => 'required|string',
+            'description' => 'required|string',
+        ];
+    }
+
+    public static function validateAttendanceUpdate(): array
+    {
+        return [
+            'players' => 'required|string',
+        ];
+    }
+
+    public static function validateClientDetailsUpdate(): array
+    {
+        return [
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|string',
+            'phone' => 'required',
+            'age' => 'required',
+        ];
+    }
+
+    public static function playerValidationFieldsUpdate(): array
+    {
+        return [
+            'first_name' => 'required|string|max:191',
+            'last_name' => 'required|string',
+            'email' => 'required|email',
+            'phone' => 'required|nullable|string|digits:10',
+            'age' => 'required',
+            'injuries' => 'string|nullable',
+            'allergies' => 'required|string|nullable',
+            'medical_conditions' => 'required|string|nullable',
+            'medications' => 'required|string|nullable',
+            'gender' => 'required|string|nullable',
+            'address' => 'string|nullable',
+            'city' => 'string|nullable',
+            'emergency_contact_name' => 'required|string|nullable',
+            'emergency_contact_phone' => 'required|string|nullable|digits:10',
+            'emergency_contact_email' => 'required|string|nullable',
+            'emergency_notes' => 'required|string|nullable',
+            'school_level' => 'string|nullable',
+            'school_address' => 'string|nullable',
+            'school_city' => 'string|nullable',
+            'school_phone' => 'string|nullable|digits:10',
+            'school_email' => 'string|nullable',
+            'school_grade' => 'string|nullable',
+            'school_counselor_name' => 'string|nullable'
+        ];
+    }
 }

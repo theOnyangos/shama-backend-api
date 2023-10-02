@@ -84,4 +84,34 @@ class TeamController extends Controller
     {
         return $this->teamService->getTeamCoaches($request, $teamId);
     }
+
+    // This function gets team players not graduated
+    public function getPlayersNotGraduated(Request $request, $teamId): JsonResponse
+    {
+        return $this->teamService->getUnGraduatedPlayers($request, $teamId);
+    }
+
+    // This method gets all team names with ids
+    public function getAllTeamNamesWithIds(Request $request): JsonResponse
+    {
+        return $this->teamService->getTeamNamesIds($request);
+    }
+
+    // This method gets graduated team players for specified clients
+    public function getAllClientGraduatedPlayers(Request $request, $teamId): JsonResponse
+    {
+        return $this->teamService->getClientGraduatedPlayers($request, $teamId);
+    }
+
+    // This function gets all players both graduated and not graduated from the database
+    public function getGraduatedAndNotGraduatedPlayers(Request $request, $teamId): JsonResponse
+    {
+        return $this->teamService->getAllGraduatedAndNotGraduatedPlayers($request, $teamId);
+    }
+
+    // This function searches in clients for players
+    public function searchClientPlayers(Request $request, $teamId): JsonResponse
+    {
+        return $this->teamService->searchForClientPlayers($request, $teamId);
+    }
 }

@@ -50,7 +50,7 @@ class AuthController extends Controller
     }
 
     // This function gets the team name
-    public function getTeamName($userId): string
+    public function getTeamName($userId): string|array
     {
         return $this->authenticationService->getTeamNameByUserId($userId);
     }

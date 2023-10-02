@@ -110,4 +110,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(TeamLocationUser::class, 'user_id');
     }
+
+    // Attendance relationship
+    public function attendance(): BelongsToMany
+    {
+        return $this->belongsToMany(Attendance::class);
+    }
 }

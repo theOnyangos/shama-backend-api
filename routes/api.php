@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AddressController;
+use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CoachesController;
 use App\Http\Controllers\Api\V1\NotificationsController;
@@ -42,13 +43,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/upload-user-image/{user_id}', [UsersController::class, 'uploadUserProfileImage']); // Done
         Route::get('/get-updated-user-information/{user_id}', [UsersController::class, 'getUpdatedUserInformation']); // Done
         Route::get('/get-user-count/{team_id}', [UsersController::class, 'getLoggedInUsersCount']); // Done
+//        Route::get('/get-single-player-with-details/{user_id}', [UsersController::class, 'getSinglePlayerWithDetails']); // Done
 
         // Admin routes
         Route::middleware('role:admin')->group(function () {
             // Endpoints for admin role
             Route::get('/get-permissions', [UsersController::class, 'getAllPermissions']); // Done!
-            Route::post('/add-user-permission/{user_id}/{role_id}', [UsersController::class, 'grantUserPermission']); // Done!
-            Route::post('/remove-user-permission/{user_id}/{role_id}', [UsersController::class, 'removeUserPermission']); // Done!
+            Route::post('/add-user-permission', [UsersController::class, 'grantUserPermission']); // Done!
+            Route::post('/remove-user-permission', [UsersController::class, 'removeUserPermission']); // Done!
             Route::post('/create-permission', [UsersController::class, 'createNewPermission']); // Done!
             Route::get('/users', [UsersController::class, 'getUsers']); // Done!
             Route::get('/statistical-data', [StatisticalDataController::class, 'getStatisticalData']); // Done!
@@ -96,6 +98,20 @@ Route::prefix('v1')->group(function () {
             Route::get('/get-single-user-details/{user_id}', [UsersController::class, 'getSingleUserDetails']); // Done!
             Route::put('/update-user-details/{user_id}', [UsersController::class, 'updateUserDetails']); // Done!
 //            Route::put('/suspend-account/{user_id}', [UsersController::class, 'suspendAccount']); // Done!
+            Route::get('/get-team-players-not-graduated/{team_id}', [TeamController::class, 'getPlayersNotGraduated']); // Done!
+            Route::get('/get-team-names-ids', [TeamController::class, 'getAllTeamNamesWithIds']); // Done!
+            Route::get('/get-users-attendance/{user_id}', [AttendanceController::class, 'getUsersAttendance']); // Done!
+            Route::post('/create-users-attendance/{user_id}', [AttendanceController::class, 'createUserAttendance']); // Done!
+            Route::post('/update-attendance/{attendance_id}', [AttendanceController::class, 'updateAttendance']); // Done!
+            Route::delete('/delete-attendance/{attendance_id}', [AttendanceController::class, 'softDeleteAttendance']); // Done!
+            Route::put('/update-user-account/{user_id}', [UsersController::class, 'updateUserAccountDetails']); // Done!
+            Route::post('/create-new-player/{user_id}', [PlayersController::class, 'registerNewPlayer']); // Done!
+            Route::get('/get-client-team-players/{team_id}', [TeamController::class, 'getAllTeamPlayers']); // Done
+            Route::get('/get-client-graduated-players/{team_id}', [TeamController::class, 'getAllClientGraduatedPlayers']); // Done
+            Route::get('/get-single-player-with-details/{user_id}', [UsersController::class, 'getSinglePlayerWithDetails']); // Done
+            Route::put('/update-single-player-details/{user_id}', [PlayersController::class, 'updateSinglePlayerDetails']); // Done
+            Route::get('/get-client-players/{team_id}', [TeamController::class, 'getGraduatedAndNotGraduatedPlayers']); // Done
+            Route::get('/search-client-players/{team_id}', [TeamController::class, 'searchClientPlayers']); // Done
         });
 
         Route::middleware('role:team')->group(function () {

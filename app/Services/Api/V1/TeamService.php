@@ -307,6 +307,7 @@ class TeamService
                 ->withCount(['members as player_count' => function ($query) {
                     $query->where('role', 'player');
                 }])
+                ->where('soft_delete', 0)
                 ->get();
 
             // Return response
@@ -328,7 +329,7 @@ class TeamService
             $perPage = 10; // Number of items per page
 
             if ($teamId !== null) {
-                $players = User::with('teamLocationUsers')
+                $players = User::with('teamLocationUsers', 'roles')
                     ->where('user_type', 'player') // Use the actual column name for user_type
                     ->whereHas('teamLocationUsers', function ($query) use ($teamId) {
                         $query->where('team_id', $teamId);
@@ -347,6 +348,35 @@ class TeamService
         }
     }
 
+    // This function gets all client graduated players
+    public static function getClientGraduatedPlayers($request, $teamId): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 10; // Number of items per page
+
+            if ($teamId !== null) {
+                $players = User::with('teamLocationUsers')
+                    ->where('user_type', 'player')
+                    ->where('is_graduated', 1)
+                    ->whereHas('teamLocationUsers', function ($query) use ($teamId) {
+                        $query->where('team_id', $teamId);
+                    })
+                    ->orderBy('id', 'DESC')
+                    ->paginate($perPage, ['*'], 'page', $page);
+            }
+
+            // Return response
+            $message = 'All graduated players for team '. (new TeamService)->getTeamName($teamId).' fetched successfully.';
+            $token = null;
+            return ApiResource::successResponse($players, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
     // This method gets all team coaches
     public static function getTeamCoaches($request, $teamId): JsonResponse
     {
@@ -356,7 +386,7 @@ class TeamService
             $perPage = 10; // Number of items per page
 
             if ($teamId !== null) {
-                $coaches = User::with('teamLocationUsers')
+                $coaches = User::with('teamLocationUsers', 'roles')
                     ->where('user_type', 'coach')
                     ->whereHas('teamLocationUsers', function ($query) use ($teamId) {
                         $query->where('team_id', $teamId);
@@ -380,5 +410,120 @@ class TeamService
         $team = Team::where("id", $teamId)->first();
         return $team->team_name;
     }
+
+    // This method gets all players that have not graduated
+    public static function getUnGraduatedPlayers($request, $teamId): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 20; // Number of items per page
+
+            if ($teamId === null) {
+                $message = 'Team players not found.';
+                return ApiResource::validationErrorResponse('Validation Error!', $message, self::STATUS_CODE_ERROR);
+            }
+
+            $players = User::select('id', 'first_name', 'last_name') // Select the desired columns
+                ->with('teamLocationUsers')
+                ->where('user_type', 'player') // Use the actual column name for user_type
+                ->where('is_graduated', 0)
+                ->whereHas('teamLocationUsers', function ($query) use ($teamId) {
+                    $query->where('team_id', $teamId);
+                })
+                ->orderBy('id', 'DESC')
+                ->paginate($perPage, ['*'], 'page', $page);
+
+            // Return response
+            $message = 'All players for team '. (new TeamService)->getTeamName($teamId).' fetched successfully.';
+            $token = null;
+            return ApiResource::successResponse($players, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // This function gets all graduated and un-graduated players for client
+    public static function getAllGraduatedAndNotGraduatedPlayers($request, $teamId): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 50; // Number of items per page
+
+            if ($teamId === null) {
+                $message = 'Team players not found.';
+                return ApiResource::validationErrorResponse('Validation Error!', $message, self::STATUS_CODE_ERROR);
+            }
+
+            $team = Team::findOrFail($teamId);
+
+            // Get an array of user IDs for the players in the team
+            $userIds = $team->members->pluck('user_id')->toArray();
+
+            // Retrieve the user records for the user IDs
+            $players = User::whereIn('id', $userIds)->paginate($perPage, ['*'], 'page', $page);
+
+            // Return response
+            $message = 'All players for team '. (new TeamService)->getTeamName($teamId).' fetched successfully.';
+            $token = null;
+            return ApiResource::successResponse($players, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    public static function getTeamNamesIds($request): JsonResponse
+    {
+        try {
+            // Get the "page" query string parameter or default to page 1
+            $page = $request->query('page', 1);
+            $perPage = 20; // Number of items per page
+
+            $teams = Team::select('id', 'team_name')
+                ->orderBy('id', 'DESC')
+                ->paginate($perPage, ['*'], 'page', $page);
+
+            // Return response
+            $message = 'All teams fetched successfully.';
+            $token = null;
+            return ApiResource::successResponse($teams, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    // Search players for client algorithm
+    public static function searchForClientPlayers($request, $teamId): JsonResponse
+    {
+        try {
+            $queryParam = $request->input("search");
+
+            // Get an array of user IDs for the players in the team
+            $team = Team::findOrFail($teamId);
+            $userIds = $team->members->pluck('user_id')->toArray();
+
+            $results = User::whereIn('id', $userIds)
+                ->where(function ($query) use ($queryParam) {
+                    $query->where('first_name', 'like', "%$queryParam%")
+                        ->orWhere('last_name', 'like', "%$queryParam%")
+                        ->orWhere('phone', 'like', "%$queryParam%")
+                        ->orWhere('email', 'like', "%$queryParam%")
+                        ->orWhere('member_id', 'like', "%$queryParam%");
+                })
+                ->get();
+
+            $message = 'Search results for: '.$queryParam." found.";
+            $token = null;
+            return ApiResource::successResponse($results, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
 
 }

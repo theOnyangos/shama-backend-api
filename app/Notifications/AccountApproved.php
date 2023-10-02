@@ -13,13 +13,15 @@ class AccountApproved extends Notification
     use Queueable;
 
     public $userName;
+    public $memberNumber;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($userName)
+    public function __construct($userName, $memberNumber)
     {
         $this->userName = $userName;
+        $this->memberNumber = $memberNumber;
     }
 
     /**
@@ -44,7 +46,7 @@ class AccountApproved extends Notification
             ->subject('Account Approved')
             ->greeting("{$salute}, {$this->userName}")
             ->line("We are excited to inform you that your account with Shama Rugby has been approved on {$currentDate}.")
-            ->line('You can now access all the features and services provided by Shama Rugby.')
+            ->line('Your member Number is ('.$this->memberNumber.') You can now access all the features and services provided by Shama Rugby.')
 //            ->action('Visit Shama Rugby', 'https://srf.co.ke')
             ->line('Thank you for choosing Shama Rugby for your rugby needs.')
             ->line('If you have any questions or need assistance, please feel free to contact us.');

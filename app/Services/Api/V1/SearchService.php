@@ -27,6 +27,7 @@ class SearchService
                 ->orWhere('phone', 'like', "%$queryParam%")
                 ->orWhere('email', 'like', "%$queryParam%")
                 ->orWhere('member_id', 'like', "%$queryParam%")
+                ->with('roles')
                 ->get();
 
             $message = 'Search results for: '.$queryParam." found.";

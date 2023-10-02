@@ -1,4 +1,5 @@
 <?php
+
 function getSalutation(): string
 {
     date_default_timezone_set('Africa/Nairobi');

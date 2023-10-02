@@ -36,4 +36,16 @@ class PlayersController extends Controller
     {
         return $this->playerService->getGraduatedPlayers($request);
     }
+
+    // This function registers new player
+    public function registerNewPlayer(Request $request, $coachId): JsonResponse
+    {
+        return $this->playerService->registerNewPlayerAndAddToTeam($request, $coachId);
+    }
+
+    // This method updates single player details
+    public function updateSinglePlayerDetails(Request $request, $userId): JsonResponse
+    {
+        return $this->playerService->updatePlayerDetails($request, $userId);
+    }
 }

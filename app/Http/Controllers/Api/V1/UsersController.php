@@ -24,14 +24,14 @@ class UsersController extends Controller
         return $this->userService->getAllSystemUsers($request);
     }
 
-    public function grantUserPermission($userId, $permissionId): JsonResponse
+    public function grantUserPermission(Request $request): JsonResponse
     {
-        return $this->userService->addPermissionToUser($userId, $permissionId);
+        return $this->userService->addPermissionToUser($request);
     }
 
-    public function removeUserPermission($userId, $permissionId): JsonResponse
+    public function removeUserPermission(Request $request): JsonResponse
     {
-        return $this->userService->removePermissionFromUser($userId, $permissionId);
+        return $this->userService->removePermissionFromUser($request);
     }
 
     public function createNewPermission(Request $request): JsonResponse
@@ -139,4 +139,17 @@ class UsersController extends Controller
     {
         return $this->userService->getLoggedInUsersCount($request, $teamId);
     }
+
+    // This function updates user account details
+    public function updateUserAccountDetails(Request $request, $userId): JsonResponse
+    {
+        return $this->userService->updateClientUserAccountDetails($request, $userId);
+    }
+
+    // This method gets a single user details data getSinglePlayerWithDetails
+    public function getSinglePlayerWithDetails(Request $request, $userId): JsonResponse
+    {
+        return $this->userService->getSinglePlayerWithDetails($request, $userId);
+    }
+
 }

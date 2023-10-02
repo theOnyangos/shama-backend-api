@@ -73,8 +73,13 @@ class AuthenticationService
 
             // Get team name
             $teamName = static::getTeamNameByUserId($user->id);
-            $user->team_name = $teamName['team_name'] ?? "No Team!";
-            $user->team_id = $teamName['team_id'] ?? null;
+            if (!empty($teamName)) {
+                $user->team_name = $teamName['team_name'];
+                $user->team_id = $teamName['team_id'];
+            } else {
+                $user->team_name = null;
+                $user->team_id = null;
+            }
 
             // Return success response
             $message = 'Login successful. Welcome back '.$user->first_name.' '.$user->last_name.'!';
@@ -118,6 +123,7 @@ class AuthenticationService
             $personalDetails['last_name'] = $request->last_name;
             $personalDetails['email'] = $request->email;
             $personalDetails['phone'] = $request->phone;
+            $personalDetails['age'] = $request->age;
             $personalDetails['user_type'] = "player";
             $personalDetails['password'] = Hash::make($request->password);
             $personalDetails->save();
@@ -245,13 +251,20 @@ class AuthenticationService
         $staffData->save();
 
         $teamRole = "";
-        if ($request->user_type === 'coach' || $request->user_type === 'user') {
+        if ($request->user_type === 'coach' || $request->user_type === 'user' || $request->user_type === 'teacher' || $request->user_type === 'social_worker') {
             $teamRole = Role::where('name', 'coach')->first();
+        }
+
+        if ($request->user_type === 'admin') {
+            $teamRole = Role::where('name', 'admin')->first();
         }
 
         if ($teamRole) {
             $staffData->assignRole($teamRole);
         }
+
+        // Send notification to users email
+        $staffData->notify(new AccountCreated($fullName));
 
         // Return response
         $message = 'Congratulations! '.$fullName.', your registration was successful and is under review, you will be notified upon approval.';
@@ -275,7 +288,7 @@ class AuthenticationService
         return str_pad($nextId, 6, '0', STR_PAD_LEFT);
     }
 
-    public static function getTeamNameByUserId($userId): string|array
+    public static function getTeamNameByUserId($userId): array
     {
         // Find the user by user ID
         $user = User::find($userId);
@@ -297,10 +310,10 @@ class AuthenticationService
 
                 return ['team_name' => $team->team_name, 'team_id' => $team->id];
             } else {
-                return "No Team";
+                return [];
             }
         } else {
-            return "Not found.";
+            return [];
         }
     }
 }
