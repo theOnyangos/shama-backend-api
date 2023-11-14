@@ -2,6 +2,7 @@
 
 namespace App\Services\Api\V1;
 
+use App\Helpers\ActivityHelper;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\UserResource;
 use App\Models\EducationDetail;
@@ -324,6 +325,10 @@ class PlayerService
 
             $message = 'All details for '.$user->first_name." ".$user->last_name.' updated successfully';
             $token = null;
+
+            $userName = ActivityHelper::getUserName($userId);
+            ActivityHelper::logActivity($userId, $userName." updated details for: ".$user->first_name." ".$user->last_name);
+
             return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();

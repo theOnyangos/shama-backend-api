@@ -379,6 +379,91 @@
                         'action' => 'POST',
                         'description' => 'Save account closing reason and deletes account.',
                     ],
+                    // New Routes Array
+                    [
+                        'action' => 'GET',
+                        'route' => '/get-team-players-not-graduated/{team_id}',
+                        'controller' => 'TeamController::class',
+                        'description' => 'Gets all players that have not graduated',
+                    ],
+                    [
+                        'action' => 'GET',
+                        'route' => '/get-team-names-ids',
+                        'controller' => 'TeamController::class',
+                        'description' => 'Gets team ids',
+                    ],
+                    [
+                        'action' => 'GET',
+                        'route' => '/get-users-attendance/{user_id}',
+                        'controller' => 'AttendanceController::class',
+                        'description' => 'Get users attendance',
+                    ],
+                    [
+                        'action' => 'POST',
+                        'route' => '/create-users-attendance/{user_id}',
+                        'controller' => 'AttendanceController::class',
+                        'description' => 'Create attendance for users',
+                    ],
+                    [
+                        'action' => 'POST',
+                        'route' => '/update-attendance/{attendance_id}',
+                        'controller' => 'AttendanceController::class',
+                        'description' => 'Update attendance for user',
+                    ],
+                    [
+                        'action' => 'DELETE',
+                        'route' => '/delete-attendance/{attendance_id}',
+                        'controller' => 'AttendanceController::class',
+                        'description' => 'Deletes users attendance',
+                    ],
+                    [
+                        'action' => 'PUT',
+                        'route' => '/update-user-account/{user_id}',
+                        'controller' => 'UsersController::class',
+                        'description' => 'Update user\'s account',
+                    ],
+                    [
+                        'action' => 'POST',
+                        'route' => '/create-new-player/{user_id}',
+                        'controller' => 'PlayersController::class',
+                        'description' => 'Create new players for user/coach',
+                    ],
+                    [
+                        'action' => 'GET',
+                        'route' => '/get-client-team-players/{team_id}',
+                        'controller' => 'TeamController::class',
+                        'description' => 'Get team players for coach',
+                    ],
+                    [
+                        'action' => 'GET',
+                        'route' => '/get-client-graduated-players/{team_id}',
+                        'controller' => 'TeamController::class',
+                        'description' => 'Get graduated clients in coach account.',
+                    ],
+                    [
+                        'action' => 'GET',
+                        'route' => '/get-single-player-with-details/{user_id}',
+                        'controller' => 'UsersController::class',
+                        'description' => 'Get single player with more details about them',
+                    ],
+                    [
+                        'action' => 'PUT',
+                        'route' => '/update-single-player-details/{user_id}',
+                        'controller' => 'PlayersController::class',
+                        'description' => 'Update single player details',
+                    ],
+                    [
+                        'action' => 'GET',
+                        'route' => '/get-client-players/{team_id}',
+                        'controller' => 'TeamController::class',
+                        'description' => 'Get players for clients',
+                    ],
+                    [
+                        'action' => 'GET',
+                        'route' => '/search-client-players/{team_id}',
+                        'controller' => 'TeamController::class',
+                        'description' => 'Search for players in clients account',
+                    ],
                 ];
 
                 // Loop through and display each endpoint

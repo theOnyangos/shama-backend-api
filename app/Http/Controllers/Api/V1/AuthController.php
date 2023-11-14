@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Helpers\ActivityHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ApiResource;
+use App\Models\Document;
+use App\Models\User;
 use App\Services\Api\V1\AuthenticationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,8 +14,16 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+
+    const STATUS_CODE_SUCCESS = 200;
+    const STATUS_CODE_SUCCESS_CREATE = 201;
+    const STATUS_CODE_ERROR = 422;
+    const STATUS_CODE_FORBIDDEN = 403;
+    const STATUS_CODE_NOT_FOUND = 404;
+    const STATUS_CODE_SERVER = 500;
+
     // Status codes
-    const STATUS_CODE_SUCCESS = 204;
+//    const STATUS_CODE_SUCCESS = 204;
 
     // Protected constructor classes
     protected AuthenticationService $authenticationService;

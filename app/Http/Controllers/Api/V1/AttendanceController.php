@@ -33,8 +33,8 @@ class AttendanceController extends Controller
     }
 
     // This function soft deletes attendance from the database
-    public function softDeleteAttendance($attendanceId): JsonResponse
+    public function softDeleteAttendance(Request $request, $attendanceId): JsonResponse
     {
-        return $this->attendanceService->softDeleteAttendance($attendanceId);
+        return $this->attendanceService->softDeleteAttendance($request, $attendanceId);
     }
 }

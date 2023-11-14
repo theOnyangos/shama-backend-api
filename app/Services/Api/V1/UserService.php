@@ -2,6 +2,7 @@
 
 namespace App\Services\Api\V1;
 
+use App\Helpers\ActivityHelper;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\CoachesPlayersResource;
 use App\Http\Resources\UserResource;
@@ -283,6 +284,10 @@ class UserService
             // Return success response
             $message = 'User details updated successfully.';
             $token = null;
+
+            $userName = ActivityHelper::getUserName($userId);
+            ActivityHelper::logActivity($userId, $userName." updated: ". $user->first_name." ".$user->last_name."'s details");
+
             return ApiResource::successResponse($user, $message, $token, self::STATUS_CODE_SUCCESS);
 
         } catch (\Throwable $err) {

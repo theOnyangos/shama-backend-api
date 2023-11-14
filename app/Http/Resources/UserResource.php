@@ -174,6 +174,13 @@ class UserResource extends JsonResource
         ];
     }
 
+    public static function validateUserDocument(): array
+    {
+        return [
+            'document' => 'required|file|mimes:pdf,doc,docx',
+        ];
+    }
+
     public static function validateClientUpdatePassword(): array
     {
         return [

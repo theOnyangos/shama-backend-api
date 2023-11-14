@@ -12,13 +12,17 @@ class AccountCreated extends Notification
 {
     use Queueable;
     public $userName;
+    public $email;
+    public $password;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($userName)
+    public function __construct($userName, $email, $password)
     {
         $this->userName = $userName;
+        $this->email = $email;
+        $this->password = $password;
     }
 
     /**
@@ -39,11 +43,15 @@ class AccountCreated extends Notification
         $salute = getSalutation();
 
         return (new MailMessage)
-            ->subject('Account Creation')
+            ->subject('Welcome to Shamas Rugby Foundation')
             ->greeting("{$salute}, {$this->userName}")
             ->line('Welcome to Shama Rugby!')
-            ->line('Your account has been successfully created. You will be notified once your account is approved, this might take up to 24hours.')
-            ->line('If you have any queries feel free to contact us at support@srf.co.ke.')
+            ->line('Your account has been successfully created. You will be notified once your account is approved; this might take up to 24 hours.')
+            ->line('To log in, use the following credentials:')
+            ->line('Email: ' . $this->email)
+            ->line('Password: ' . $this->password)
+            ->line('For security reasons, it is recommended that you reset your password once you log in.')
+            ->line('If you have any queries, feel free to contact us at support@srf.co.ke.')
             ->line('Thank you for joining our community.');
     }
 

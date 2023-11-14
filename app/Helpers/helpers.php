@@ -14,4 +14,6 @@ function getSalutation(): string
     }
 }
 
+// This function creates an activity in the database
+
 

@@ -2,8 +2,11 @@
 
 namespace App\Services\Api\V1;
 
+use App\Helpers\ActivityHelper;
+use App\Helpers\NotificationHelper;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\UserResource;
+use App\Models\Activity;
 use App\Models\Team;
 use App\Models\TeamLocationUser;
 use App\Models\User;
@@ -12,6 +15,8 @@ use App\Models\EducationDetail;
 use App\Models\MedicalDetail;
 use App\Models\UserOtherDetail;
 use App\Notifications\AccountCreated;
+use App\Notifications\NotifyAdmin;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -81,6 +86,13 @@ class AuthenticationService
                 $user->team_id = null;
             }
 
+
+            $userName = ActivityHelper::getUserName($user->id);
+//            $recentActivity = Activity::getRecentActivities($user->id);
+//            $createdAt = Carbon::parse($recentActivity->created_at);
+//            $timeAgo = $createdAt->diffForHumans();
+            ActivityHelper::logActivity($user->id, $userName." logged in the application");
+
             // Return success response
             $message = 'Login successful. Welcome back '.$user->first_name.' '.$user->last_name.'!';
             $token = $user->createToken('api_token')->plainTextToken;
@@ -116,16 +128,19 @@ class AuthenticationService
                 return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
             }
 
+            $password = static::generatePassword(8);
+
             // Store users data
             $personalDetails = new User();
             $personalDetails['member_id'] = static::generateSequentialId();
             $personalDetails['first_name'] = $request->first_name;
             $personalDetails['last_name'] = $request->last_name;
+            $personalDetails['category_id'] = $request->category_id ?? NULL;
             $personalDetails['email'] = $request->email;
             $personalDetails['phone'] = $request->phone;
             $personalDetails['age'] = $request->age;
             $personalDetails['user_type'] = "player";
-            $personalDetails['password'] = Hash::make($request->password);
+            $personalDetails['password'] = Hash::make($password);
             $personalDetails->save();
 
             // Get the created ID
@@ -146,7 +161,10 @@ class AuthenticationService
             }
 
             // Send notification to users email
-            $personalDetails->notify(new AccountCreated($request->first_name." ".$request->last_name));
+            $personalDetails->notify(new AccountCreated($request->first_name." ".$request->last_name, $request->email, $password));
+
+            $userName = ActivityHelper::getUserName($request->user_id ?? 1);
+            ActivityHelper::logActivity($request->user_id ?? 1, $userName." Registered a new team player: ".$request->first_name." ".$request->last_name);
 
             // Return success response
             $message = 'Registration was successful and is under review, you will be notified upon approval.';
@@ -158,6 +176,20 @@ class AuthenticationService
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
         }
+    }
+
+    public static function generatePassword($length = 12): string
+    {
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_';
+
+        $password = '';
+        $characterCount = strlen($characters) - 1;
+
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $characters[mt_rand(0, $characterCount)];
+        }
+
+        return $password;
     }
 
     // This function stores medical details
@@ -263,12 +295,21 @@ class AuthenticationService
             $staffData->assignRole($teamRole);
         }
 
+        $adminUser = [
+            "user_name" => "Admin",
+            "email" => "denonyango@gmail.com"
+        ];
+
+        // Get admin users
+        $notificationMessage = "A new user ".$fullName." has registered for an account as a staff member. In order for them to be able to access their newly created account, please login the app and approve this account";
+
         // Send notification to users email
         $staffData->notify(new AccountCreated($fullName));
 
         // Return response
         $message = 'Congratulations! '.$fullName.', your registration was successful and is under review, you will be notified upon approval.';
         $token = $staffData->createToken('api_token')->plainTextToken;
+        \Notification::route('mail', $adminUser['email'])->notify(new NotifyAdmin($notificationMessage, $adminUser['user_name']));
         return ApiResource::successResponse($staffData, $message, $token, self::STATUS_CODE_SUCCESS_CREATE);
     }
 

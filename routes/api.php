@@ -43,7 +43,15 @@ Route::prefix('v1')->group(function () {
         Route::post('/upload-user-image/{user_id}', [UsersController::class, 'uploadUserProfileImage']); // Done
         Route::get('/get-updated-user-information/{user_id}', [UsersController::class, 'getUpdatedUserInformation']); // Done
         Route::get('/get-user-count/{team_id}', [UsersController::class, 'getLoggedInUsersCount']); // Done
-//        Route::get('/get-single-player-with-details/{user_id}', [UsersController::class, 'getSinglePlayerWithDetails']); // Done
+        // Route::get('/get-single-player-with-details/{user_id}', [UsersController::class, 'getSinglePlayerWithDetails']); // Done
+        // New Routes 13/11/2023
+        Route::post('/create-player-category/{user_id}', [HomeController::class, 'createNewCategory']);
+        Route::get('/get-categories', [HomeController::class, 'getAllCategories']);
+        Route::get('/get-players-by-category/{category_id}', [HomeController::class, 'getPlayersByCategory']);
+        Route::post('/upload-documents/{user_id}/{player_id}', [HomeController::class, 'uploadPlayerDocuments']);
+
+        // New Routes 14/11/2023
+        Route::get('/get-users-activities', [HomeController::class, 'getUsersActivities']);
 
         // Admin routes
         Route::middleware('role:admin')->group(function () {

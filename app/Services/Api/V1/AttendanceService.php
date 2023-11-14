@@ -2,6 +2,7 @@
 
 namespace App\Services\Api\V1;
 
+use App\Helpers\ActivityHelper;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\UserResource;
 use App\Models\Attendance;
@@ -91,6 +92,10 @@ class AttendanceService
             // Process the results as needed and return in the response.
             $message = 'Attendance added successfully.';
             $token = null;
+
+            $userName = ActivityHelper::getUserName($userId);
+            ActivityHelper::logActivity($userId, $userName." marked attendance type: ". $request->attendance_type);
+
             return ApiResource::successResponse($attendance, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
@@ -126,6 +131,9 @@ class AttendanceService
             $message = 'Attendance with ID.'.$attendanceId." has been updated successfully";
             $token = null;
 
+            $userName = ActivityHelper::getUserName($request->user_id);
+            ActivityHelper::logActivity($request->user_id, $userName." updated attendance number: ". $attendanceId);
+
             return ApiResource::successResponse($newUsersIds, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
@@ -134,7 +142,7 @@ class AttendanceService
     }
 
     // This method soft-deletes attendance from the database
-    public static function softDeleteAttendance($attendanceId): JsonResponse
+    public static function softDeleteAttendance($request, $attendanceId): JsonResponse
     {
         try {
             $attendance = Attendance::find($attendanceId);
@@ -151,6 +159,9 @@ class AttendanceService
             // Process the results as needed and return in the response.
             $message = 'Attendance deleted successfully';
             $token = null;
+
+            $userName = ActivityHelper::getUserName($request->user_id);
+            ActivityHelper::logActivity($request->user_id, $userName." deleted attendance number: ". $attendanceId);
 
             return ApiResource::successResponse($attendance, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
