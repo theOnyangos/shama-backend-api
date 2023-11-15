@@ -5,6 +5,7 @@ namespace App\Services\Api\V1;
 use App\Http\Requests\CreateTeamRequest;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\UserResource;
+use App\Models\Category;
 use App\Models\Team;
 use App\Models\TeamLocation;
 use App\Models\TeamLocationUser;
@@ -438,6 +439,47 @@ class TeamService
             $message = 'All players for team '. (new TeamService)->getTeamName($teamId).' fetched successfully.';
             $token = null;
             return ApiResource::successResponse($players, $message, $token, self::STATUS_CODE_SUCCESS);
+        } catch (\Throwable $err) {
+            $message = $err->getMessage();
+            return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
+        }
+    }
+
+    public static function getUnGraduatedPlayersCategories($request, $teamId): JsonResponse
+    {
+        try {
+            // Get categories
+            $categories = Category::all(); // Assuming Category is the model for your categories table
+
+            // Initialize an array to store users for each category
+            $categoryUsers = [];
+
+            if ($teamId === null) {
+                $message = 'Team players not found.';
+                return ApiResource::validationErrorResponse('Validation Error!', $message, self::STATUS_CODE_ERROR);
+            }
+
+            foreach ($categories as $category) {
+                // Filter users based on category_id
+                $players = User::select('id', 'first_name', 'last_name')
+                    ->with('teamLocationUsers')
+                    ->where('user_type', 'player')
+                    ->where('is_graduated', 0)
+                    ->where('category_id', $category->id) // Assuming category_id is the column in the users table
+                    ->whereHas('teamLocationUsers', function ($query) use ($teamId) {
+                        $query->where('team_id', $teamId);
+                    })
+                    ->orderBy('id', 'DESC')
+                    ->get();
+
+                // Add users to the categoryUsers array
+                $categoryUsers[$category->title] = $players;
+            }
+
+            // Return response with the categoryUsers array
+            $message = 'All players for team ' . (new TeamService)->getTeamName($teamId) . ' fetched successfully.';
+            $token = null;
+            return ApiResource::successResponse($categoryUsers, $message, $token, self::STATUS_CODE_SUCCESS);
         } catch (\Throwable $err) {
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);

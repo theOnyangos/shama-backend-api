@@ -88,7 +88,7 @@ class TeamController extends Controller
     // This function gets team players not graduated
     public function getPlayersNotGraduated(Request $request, $teamId): JsonResponse
     {
-        return $this->teamService->getUnGraduatedPlayers($request, $teamId);
+        return $this->teamService->getUnGraduatedPlayersCategories($request, $teamId);
     }
 
     // This method gets all team names with ids

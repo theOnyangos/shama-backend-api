@@ -121,6 +121,8 @@ class PlayerService
                 return ApiResource::validationErrorResponse($validator->errors(), $message, self::STATUS_CODE_ERROR);
             }
 
+            $password = static::generatePassword(8);
+
             // Store users data
             $personalDetails = new User();
             $personalDetails['member_id'] = static::generateSequentialId();
@@ -130,7 +132,7 @@ class PlayerService
             $personalDetails['phone'] = $request->phone;
             $personalDetails['age'] = $request->age;
             $personalDetails['user_type'] = "player";
-            $personalDetails['password'] = Hash::make($request->password);
+            $personalDetails['password'] = Hash::make($password);
             $personalDetails->save();
 
             // Get the created ID
@@ -154,7 +156,10 @@ class PlayerService
             static::addUserToTeam($coachId, $savedUserId);
 
             // Send notification to users email
-            $personalDetails->notify(new AccountCreated($request->first_name." ".$request->last_name));
+            $personalDetails->notify(new AccountCreated($request->first_name." ".$request->last_name, $request->email, $password));
+
+            $userName = ActivityHelper::getUserName($request->user_id ?? 1);
+            ActivityHelper::logActivity($request->user_id ?? 1, $userName." Registered a new team player: ".$request->first_name." ".$request->last_name);
 
             $message = 'New player registered and added to team.';
             $token = null;
@@ -163,6 +168,20 @@ class PlayerService
             $message = $err->getMessage();
             return ApiResource::validationErrorResponse('System Error!', $message, self::STATUS_CODE_SERVER);
         }
+    }
+
+    public static function generatePassword($length = 12): string
+    {
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_';
+
+        $password = '';
+        $characterCount = strlen($characters) - 1;
+
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $characters[mt_rand(0, $characterCount)];
+        }
+
+        return $password;
     }
 
     // This method adds user to team after registration
